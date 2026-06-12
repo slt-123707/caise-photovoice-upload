@@ -21,7 +21,9 @@
   --text-light: #6B7280;
   --border: #E5E7EB;
   --success: #10B981;
+  --success-light: #D1FAE5;
   --warning: #F59E0B;
+  --warning-light: #FEF3C7;
   --danger: #EF4444;
   --radius: 16px;
   --radius-sm: 10px;
@@ -38,9 +40,9 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ---- Layout ---- */
 .app { max-width: 500px; margin: 0 auto; min-height: 100dvh; display: flex; flex-direction: column; }
 
+/* ---- Header ---- */
 .header {
   background: var(--purple);
   color: white;
@@ -55,11 +57,10 @@ body {
 .header h1 { font-size: 18px; font-weight: 700; }
 .header .subtitle { font-size: 12px; opacity: 0.8; }
 .header-left { display: flex; flex-direction: column; }
-.header-right { display: flex; gap: 8px; }
 
+/* ---- Screens ---- */
 .screen { display: none; flex: 1; flex-direction: column; }
 .screen.active { display: flex; }
-
 .content { flex: 1; padding: 16px; overflow-y: auto; }
 
 /* ---- Buttons ---- */
@@ -67,25 +68,19 @@ body {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   padding: 14px 24px; border-radius: var(--radius-sm); font-size: 16px;
   font-weight: 600; border: none; cursor: pointer; transition: all 0.2s;
-  text-decoration: none; -webkit-tap-highlight-color: transparent;
+  -webkit-tap-highlight-color: transparent;
 }
 .btn-primary { background: var(--purple); color: white; }
 .btn-primary:hover { background: var(--purple-dark); }
+.btn-primary:disabled { background: #B8B5D4; cursor: not-allowed; }
 .btn-secondary { background: var(--surface); color: var(--purple); border: 2px solid var(--purple); }
 .btn-success { background: var(--success); color: white; }
 .btn-danger { background: white; color: var(--danger); border: 2px solid var(--danger); }
 .btn-full { width: 100%; }
-.btn-icon {
-  width: 40px; height: 40px; padding: 0; border-radius: 50%;
-  background: rgba(255,255,255,0.2); color: white; border: none; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  -webkit-tap-highlight-color: transparent;
-}
+.btn-lg { padding: 18px 24px; font-size: 18px; border-radius: var(--radius); }
 
-/* ---- Capture type selector ---- */
-.capture-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 8px 0;
-}
+/* ---- Capture cards ---- */
+.capture-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 8px 0; }
 .capture-card {
   background: var(--surface); border: 2px solid var(--border); border-radius: var(--radius);
   padding: 24px 16px; text-align: center; cursor: pointer; transition: all 0.2s;
@@ -106,62 +101,11 @@ body {
 .caption-area::placeholder { color: #9CA3AF; }
 
 .preview-media {
-  width: 100%; max-height: 300px; object-fit: contain; border-radius: var(--radius-sm);
+  width: 100%; max-height: 250px; object-fit: contain; border-radius: var(--radius-sm);
   background: #000;
 }
-.audio-preview { width: 100%; margin: 12px 0; }
-
+.audio-preview { width: 100%; margin: 8px 0; }
 .char-count { text-align: right; font-size: 12px; color: var(--text-light); margin-top: 4px; }
-
-/* ---- Portfolio ---- */
-.empty-state {
-  text-align: center; padding: 60px 20px; color: var(--text-light);
-}
-.empty-state .icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
-.empty-state h2 { font-size: 18px; margin-bottom: 8px; color: var(--text); }
-.empty-state p { font-size: 14px; line-height: 1.5; }
-
-.entry-card {
-  background: var(--surface); border-radius: var(--radius); overflow: hidden;
-  box-shadow: var(--shadow); margin-bottom: 16px; transition: all 0.2s;
-}
-.entry-card-media {
-  width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; background: #000;
-}
-.entry-card-audio { width: 100%; padding: 16px 16px 0; }
-.entry-card-file { padding: 20px 16px 4px; display: flex; align-items: center; gap: 12px; color: var(--text-light); }
-.entry-card-file .file-icon { font-size: 28px; }
-.entry-card-file .file-name { font-size: 13px; word-break: break-all; }
-.entry-card-body { padding: 16px; }
-.entry-card-caption { font-size: 15px; line-height: 1.5; margin-bottom: 12px; white-space: pre-wrap; }
-.entry-card-meta { font-size: 12px; color: var(--text-light); display: flex; justify-content: space-between; align-items: center; }
-.entry-card-actions { display: flex; gap: 8px; padding: 0 16px 16px; }
-.entry-card-actions .btn { flex: 1; padding: 10px; font-size: 13px; }
-
-.badge {
-  display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;
-}
-.badge-uploaded { background: #D1FAE5; color: #065F46; }
-.badge-pending { background: #FEF3C7; color: #92400E; }
-.badge-type { background: #EEF2FF; color: var(--purple); }
-
-/* ---- Upload flow ---- */
-.upload-steps {
-  background: var(--surface); border-radius: var(--radius); padding: 20px;
-  box-shadow: var(--shadow);
-}
-.upload-step {
-  display: flex; gap: 14px; padding: 14px 0;
-  border-bottom: 1px solid var(--border);
-}
-.upload-step:last-child { border-bottom: none; }
-.step-num {
-  width: 28px; height: 28px; border-radius: 50%; background: var(--purple);
-  color: white; display: flex; align-items: center; justify-content: center;
-  font-size: 13px; font-weight: 700; flex-shrink: 0;
-}
-.step-text { font-size: 14px; line-height: 1.5; }
-.step-text strong { color: var(--purple); }
 
 /* ---- Recording ---- */
 .recorder {
@@ -185,12 +129,84 @@ body {
   50% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
 }
 
+/* ---- Sending overlay ---- */
+.sending-overlay {
+  position: fixed; inset: 0; background: rgba(245, 244, 255, 0.95);
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  z-index: 300; gap: 20px;
+}
+.sending-overlay.active { display: flex; }
+
+.spinner {
+  width: 48px; height: 48px; border: 4px solid var(--border);
+  border-top-color: var(--purple); border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.sending-text { font-size: 18px; font-weight: 600; color: var(--text); }
+.sending-subtext { font-size: 14px; color: var(--text-light); text-align: center; max-width: 280px; }
+
+/* ---- Success animation ---- */
+.success-icon {
+  width: 64px; height: 64px; border-radius: 50%; background: var(--success);
+  display: flex; align-items: center; justify-content: center;
+  animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+.success-icon svg { width: 32px; height: 32px; }
+@keyframes popIn {
+  0% { transform: scale(0); }
+  100% { transform: scale(1); }
+}
+
+/* ---- Portfolio ---- */
+.empty-state {
+  text-align: center; padding: 60px 20px; color: var(--text-light);
+}
+.empty-state .icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+.empty-state h2 { font-size: 18px; margin-bottom: 8px; color: var(--text); }
+.empty-state p { font-size: 14px; line-height: 1.5; }
+
+.entry-card {
+  background: var(--surface); border-radius: var(--radius); overflow: hidden;
+  box-shadow: var(--shadow); margin-bottom: 16px;
+}
+.entry-card-media {
+  width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; background: #000;
+}
+.entry-card-audio { width: 100%; padding: 16px 16px 0; }
+.entry-card-file {
+  padding: 20px 16px 4px; display: flex; align-items: center; gap: 12px; color: var(--text-light);
+}
+.entry-card-file .file-icon { font-size: 28px; }
+.entry-card-file .file-name { font-size: 13px; word-break: break-all; }
+.entry-card-body { padding: 16px; }
+.entry-card-caption { font-size: 15px; line-height: 1.5; margin-bottom: 12px; white-space: pre-wrap; }
+.entry-card-meta {
+  font-size: 12px; color: var(--text-light); display: flex;
+  justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;
+}
+
+.badge {
+  display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;
+}
+.badge-sent { background: var(--success-light); color: #065F46; }
+.badge-pending { background: var(--warning-light); color: #92400E; }
+.badge-failed { background: #FEE2E2; color: #991B1B; }
+.badge-type { background: #EEF2FF; color: var(--purple); }
+
+.entry-card-actions { display: flex; gap: 8px; padding: 0 16px 16px; }
+.entry-card-actions .btn { flex: 1; padding: 10px; font-size: 13px; }
+
 /* ---- Settings ---- */
 .setting-group { margin-bottom: 24px; }
-.setting-label { font-size: 13px; font-weight: 600; color: var(--text-light); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+.setting-label {
+  font-size: 13px; font-weight: 600; color: var(--text-light); margin-bottom: 8px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
 .setting-value {
   background: var(--surface); padding: 14px 16px; border-radius: var(--radius-sm);
-  font-size: 14px; border: 1px solid var(--border); word-break: break-all;
+  font-size: 14px; border: 1px solid var(--border);
 }
 
 /* ---- Nav ---- */
@@ -203,39 +219,25 @@ body {
   flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
   padding: 10px 0; font-size: 10px; color: var(--text-light); cursor: pointer;
   border: none; background: none; -webkit-tap-highlight-color: transparent;
-  transition: color 0.2s;
+  transition: color 0.2s; position: relative;
 }
 .nav-item.active { color: var(--purple); }
 .nav-item .nav-icon { font-size: 22px; }
 .nav-badge {
-  position: absolute; top: 4px; right: calc(50% - 18px); background: var(--danger);
+  position: absolute; top: 4px; right: calc(50% - 18px); background: var(--warning);
   color: white; font-size: 10px; width: 18px; height: 18px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center; font-weight: 700;
 }
-.nav-item { position: relative; }
 
-/* ---- Modal ---- */
-.modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200;
-  display: none; align-items: flex-end; justify-content: center;
+/* ---- Error screen ---- */
+.error-box {
+  background: var(--surface); border-radius: var(--radius); padding: 20px;
+  border: 1px solid var(--border); text-align: center;
 }
-.modal-overlay.active { display: flex; }
-.modal {
-  background: var(--surface); border-radius: var(--radius) var(--radius) 0 0;
-  width: 100%; max-width: 500px; max-height: 85dvh; overflow-y: auto;
-  padding: 24px 20px; padding-bottom: calc(24px + env(safe-area-inset-bottom, 0));
-  animation: slideUp 0.3s ease-out;
-}
-@keyframes slideUp {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
-}
-.modal h2 { font-size: 18px; margin-bottom: 16px; }
 
 /* ---- Utilities ---- */
 .gap-12 { display: flex; flex-direction: column; gap: 12px; }
 .gap-16 { display: flex; flex-direction: column; gap: 16px; }
-.mt-8 { margin-top: 8px; }
 .mt-16 { margin-top: 16px; }
 .mb-16 { margin-bottom: 16px; }
 .text-center { text-align: center; }
@@ -243,28 +245,17 @@ body {
 .text-light { color: var(--text-light); }
 .hidden { display: none !important; }
 
-/* ---- Prompt labels ---- */
-.prompt-label {
-  font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 6px;
-}
-.prompt-hint {
-  font-size: 13px; color: var(--text-light); margin-bottom: 12px; line-height: 1.4;
-}
+.prompt-label { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.prompt-hint { font-size: 13px; color: var(--text-light); margin-bottom: 12px; line-height: 1.4; }
 </style>
 </head>
 <body>
 <div class="app" id="app">
 
-  <!-- Header -->
   <div class="header">
     <div class="header-left">
       <h1 id="headerTitle">CAISE</h1>
       <span class="subtitle" id="headerSubtitle">My AI Diary</span>
-    </div>
-    <div class="header-right">
-      <button class="btn-icon" onclick="showScreen('settings')" aria-label="Settings">
-        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" transform="scale(0.83) translate(1,1)"/></svg>
-      </button>
     </div>
   </div>
 
@@ -274,14 +265,14 @@ body {
       <div class="empty-state" id="emptyState">
         <div class="icon">&#128247;</div>
         <h2>Your diary is empty</h2>
-        <p>Tap the + button below to capture your first moment with AI.</p>
+        <p>Tap <strong>New</strong> below to capture your first moment with AI.</p>
       </div>
       <div id="entryList"></div>
     </div>
     <div style="height: 60px;"></div>
   </div>
 
-  <!-- Screen: New capture type -->
+  <!-- Screen: New capture -->
   <div class="screen" id="screen-new">
     <div class="content">
       <h2 class="mb-16">What do you want to capture?</h2>
@@ -324,7 +315,7 @@ body {
     </div>
   </div>
 
-  <!-- Screen: Caption editor -->
+  <!-- Screen: Caption + Send -->
   <div class="screen" id="screen-caption">
     <div class="content gap-16">
       <div id="mediaPreview"></div>
@@ -340,44 +331,10 @@ body {
         ></textarea>
         <div class="char-count"><span id="charCount">0</span> / 1000</div>
       </div>
-      <div class="gap-12">
-        <button class="btn btn-primary btn-full" onclick="saveEntry()">Save to diary</button>
-        <button class="btn btn-secondary btn-full" onclick="discardEntry()">Discard</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Screen: Upload -->
-  <div class="screen" id="screen-upload">
-    <div class="content gap-16">
-      <h2>Send to OneDrive</h2>
-      <div id="uploadPreview"></div>
-      <div class="upload-steps">
-        <div class="upload-step">
-          <div class="step-num">1</div>
-          <div class="step-text">Tap <strong>"Download file"</strong> below to save the file to your device.</div>
-        </div>
-        <div class="upload-step">
-          <div class="step-num">2</div>
-          <div class="step-text">Tap <strong>"Open OneDrive folder"</strong> — it will open your personal folder.</div>
-        </div>
-        <div class="upload-step">
-          <div class="step-num">3</div>
-          <div class="step-text">Tap <strong>Upload</strong> in OneDrive and select the file you just downloaded.</div>
-        </div>
-      </div>
-      <button class="btn btn-primary btn-full" id="downloadBtn" onclick="downloadCurrentEntry()">
-        &#128229; Download file
+      <button class="btn btn-primary btn-full btn-lg" id="sendBtn" onclick="sendEntry()">
+        Send &#10148;
       </button>
-      <button class="btn btn-success btn-full" id="openFolderBtn" onclick="openOneDriveFolder()">
-        &#128194; Open OneDrive folder
-      </button>
-      <button class="btn btn-secondary btn-full" onclick="markUploaded()">
-        &#9989; Done — I've uploaded it
-      </button>
-      <button class="btn btn-full" style="background:none; color:var(--text-light);" onclick="showScreen('portfolio')">
-        Cancel
-      </button>
+      <button class="btn btn-secondary btn-full" onclick="discardEntry()">Discard</button>
     </div>
   </div>
 
@@ -390,22 +347,18 @@ body {
         <div class="setting-value" id="settingStudent">—</div>
       </div>
       <div class="setting-group">
-        <div class="setting-label">OneDrive folder</div>
-        <div class="setting-value" id="settingFolder">Not configured</div>
+        <div class="setting-label">Entries sent</div>
+        <div class="setting-value" id="settingCount">0</div>
       </div>
       <div class="setting-group">
-        <div class="setting-label">Entries</div>
-        <div class="setting-value" id="settingCount">0 entries (0 uploaded)</div>
+        <div class="setting-label">Connection</div>
+        <div class="setting-value" id="settingConnection">—</div>
       </div>
-      <div class="setting-group">
-        <div class="setting-label">Storage</div>
-        <div class="setting-value" id="settingStorage">—</div>
-      </div>
-      <button class="btn btn-danger btn-full" onclick="confirmClearData()">Clear all local data</button>
-      <p class="text-sm text-light text-center mt-8">
-        CAISE Photovoice v1.0<br>
-        All data stored locally on your device.<br>
-        Nothing is sent anywhere until you upload to OneDrive.
+      <button class="btn btn-danger btn-full" onclick="confirmClearData()">Clear local history</button>
+      <p class="text-sm text-light text-center" style="margin-top:8px;">
+        CAISE Photovoice v2.0<br>
+        Your entries are sent directly to your researcher's secure folder.<br>
+        History on this device is just for your reference.
       </p>
     </div>
   </div>
@@ -418,7 +371,7 @@ body {
         <h2>Link not recognised</h2>
         <p>This app needs a personal link from your researcher. It should look like:<br><br>
         <code style="background:#EEF2FF; padding:4px 8px; border-radius:4px; font-size:13px;">
-          yoursite.github.io/?s=01
+          diary.projectcaise.co.uk/?s=01
         </code><br><br>
         Check the link you were given, or ask your researcher for help.</p>
       </div>
@@ -432,7 +385,7 @@ body {
       Diary
     </button>
     <button class="nav-item" onclick="showScreen('new')" data-screen="new"
-      style="background:var(--purple); color:white; border-radius:0; margin:0;">
+      style="background:var(--purple); color:white; border-radius:0;">
       <span class="nav-icon" style="font-size:28px;">+</span>
       New
     </button>
@@ -441,6 +394,13 @@ body {
       Settings
     </button>
   </div>
+</div>
+
+<!-- Sending overlay -->
+<div class="sending-overlay" id="sendingOverlay">
+  <div class="spinner" id="sendingSpinner"></div>
+  <div class="sending-text" id="sendingText">Sending...</div>
+  <div class="sending-subtext" id="sendingSubtext">This might take a moment for large files</div>
 </div>
 
 <!-- Hidden file inputs -->
@@ -452,14 +412,13 @@ body {
 <script>
 // ---- State ----
 let currentStudent = null;
-let currentCapture = null;   // { type, blob, filename, mimeType }
-let uploadEntryId = null;
+let currentCapture = null;
 let mediaRecorder = null;
 let audioChunks = [];
 let recInterval = null;
 let recStartTime = 0;
 
-const DB_NAME = 'caise-diary';
+const DB_NAME = 'caise-diary-v2';
 const DB_VERSION = 1;
 let db = null;
 
@@ -468,78 +427,76 @@ window.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(window.location.search);
   const studentId = params.get('s');
 
-  if (!studentId || !STUDENTS[studentId]) {
-    document.getElementById('screen-error').classList.add('active');
-    document.getElementById('bottomNav').classList.add('hidden');
+  if (!studentId || !CONFIG.students[studentId]) {
     document.querySelector('.screen.active')?.classList.remove('active');
     document.getElementById('screen-error').classList.add('active');
+    document.getElementById('bottomNav').classList.add('hidden');
     return;
   }
 
-  currentStudent = { id: studentId, ...STUDENTS[studentId] };
+  currentStudent = { id: studentId, ...CONFIG.students[studentId] };
   document.getElementById('headerSubtitle').textContent =
-    STUDY.subtitle + (currentStudent.name ? ` — ${currentStudent.name}` : '');
+    CONFIG.subtitle + (currentStudent.name ? ` — ${currentStudent.name}` : '');
 
   await initDB();
   renderPortfolio();
-  updateSettings();
   setupFileInputs();
 });
 
-// ---- IndexedDB ----
+// ---- IndexedDB (lightweight — stores metadata + thumbnail, not full media) ----
 function initDB() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-    request.onupgradeneeded = (e) => {
-      const db = e.target.result;
-      if (!db.objectStoreNames.contains('entries')) {
-        const store = db.createObjectStore('entries', { keyPath: 'id' });
-        store.createIndex('timestamp', 'timestamp', { unique: false });
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = (e) => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('entries')) {
+        const store = d.createObjectStore('entries', { keyPath: 'id' });
+        store.createIndex('timestamp', 'timestamp');
       }
     };
-    request.onsuccess = (e) => { db = e.target.result; resolve(); };
-    request.onerror = (e) => reject(e.target.error);
-  });
-}
-
-function dbTransaction(storeName, mode) {
-  return db.transaction(storeName, mode).objectStore(storeName);
-}
-
-function dbGetAll() {
-  return new Promise((resolve, reject) => {
-    const request = dbTransaction('entries', 'readonly').index('timestamp').openCursor(null, 'prev');
-    const results = [];
-    request.onsuccess = (e) => {
-      const cursor = e.target.result;
-      if (cursor) { results.push(cursor.value); cursor.continue(); }
-      else resolve(results);
-    };
-    request.onerror = (e) => reject(e.target.error);
+    req.onsuccess = (e) => { db = e.target.result; resolve(); };
+    req.onerror = (e) => reject(e.target.error);
   });
 }
 
 function dbPut(entry) {
   return new Promise((resolve, reject) => {
-    const request = dbTransaction('entries', 'readwrite').put(entry);
-    request.onsuccess = () => resolve();
-    request.onerror = (e) => reject(e.target.error);
+    const tx = db.transaction('entries', 'readwrite');
+    tx.objectStore('entries').put(entry);
+    tx.oncomplete = resolve;
+    tx.onerror = (e) => reject(e.target.error);
+  });
+}
+
+function dbGetAll() {
+  return new Promise((resolve, reject) => {
+    const req = db.transaction('entries', 'readonly')
+      .objectStore('entries').index('timestamp').openCursor(null, 'prev');
+    const results = [];
+    req.onsuccess = (e) => {
+      const cursor = e.target.result;
+      if (cursor) { results.push(cursor.value); cursor.continue(); }
+      else resolve(results);
+    };
+    req.onerror = (e) => reject(e.target.error);
   });
 }
 
 function dbDelete(id) {
   return new Promise((resolve, reject) => {
-    const request = dbTransaction('entries', 'readwrite').delete(id);
-    request.onsuccess = () => resolve();
-    request.onerror = (e) => reject(e.target.error);
+    const tx = db.transaction('entries', 'readwrite');
+    tx.objectStore('entries').delete(id);
+    tx.oncomplete = resolve;
+    tx.onerror = (e) => reject(e.target.error);
   });
 }
 
 function dbClear() {
   return new Promise((resolve, reject) => {
-    const request = dbTransaction('entries', 'readwrite').clear();
-    request.onsuccess = () => resolve();
-    request.onerror = (e) => reject(e.target.error);
+    const tx = db.transaction('entries', 'readwrite');
+    tx.objectStore('entries').clear();
+    tx.oncomplete = resolve;
+    tx.onerror = (e) => reject(e.target.error);
   });
 }
 
@@ -549,12 +506,11 @@ function showScreen(name) {
   document.getElementById(`screen-${name}`).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.querySelector(`.nav-item[data-screen="${name}"]`)?.classList.add('active');
-
   if (name === 'portfolio') renderPortfolio();
   if (name === 'settings') updateSettings();
 }
 
-// ---- File input setup ----
+// ---- File inputs ----
 function setupFileInputs() {
   document.getElementById('cameraInput').addEventListener('change', handleFileSelect);
   document.getElementById('galleryInput').addEventListener('change', handleFileSelect);
@@ -565,7 +521,8 @@ function handleFileSelect(e) {
   const file = e.target.files[0];
   if (!file) return;
   currentCapture = {
-    type: file.type.startsWith('image/') ? 'image' : file.type.startsWith('video/') ? 'video' : 'file',
+    type: file.type.startsWith('image/') ? 'image' :
+          file.type.startsWith('video/') ? 'video' : 'file',
     blob: file,
     filename: file.name,
     mimeType: file.type,
@@ -576,16 +533,10 @@ function handleFileSelect(e) {
 
 // ---- Capture ----
 function startCapture(mode) {
-  if (mode === 'camera') {
-    document.getElementById('cameraInput').click();
-  } else if (mode === 'gallery') {
-    document.getElementById('galleryInput').click();
-  } else if (mode === 'voice') {
-    showScreen('recorder');
-    resetRecorder();
-  } else if (mode === 'file') {
-    document.getElementById('fileInput').click();
-  }
+  if (mode === 'camera') document.getElementById('cameraInput').click();
+  else if (mode === 'gallery') document.getElementById('galleryInput').click();
+  else if (mode === 'voice') { showScreen('recorder'); resetRecorder(); }
+  else if (mode === 'file') document.getElementById('fileInput').click();
 }
 
 // ---- Voice recording ----
@@ -599,7 +550,6 @@ function resetRecorder() {
 
 async function toggleRecording() {
   const btn = document.getElementById('recBtn');
-
   if (mediaRecorder && mediaRecorder.state === 'recording') {
     mediaRecorder.stop();
     btn.classList.remove('recording');
@@ -607,37 +557,25 @@ async function toggleRecording() {
     clearInterval(recInterval);
     return;
   }
-
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     audioChunks = [];
     mediaRecorder = new MediaRecorder(stream);
-
-    mediaRecorder.ondataavailable = (e) => {
-      if (e.data.size > 0) audioChunks.push(e.data);
-    };
-
+    mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunks.push(e.data); };
     mediaRecorder.onstop = () => {
       stream.getTracks().forEach(t => t.stop());
       const blob = new Blob(audioChunks, { type: 'audio/webm' });
-      currentCapture = {
-        type: 'audio',
-        blob: blob,
-        filename: `voice-${Date.now()}.webm`,
-        mimeType: 'audio/webm',
-      };
+      currentCapture = { type: 'audio', blob, filename: `voice-${Date.now()}.webm`, mimeType: 'audio/webm' };
       showCaptionScreen();
     };
-
     mediaRecorder.start();
     btn.classList.add('recording');
     document.getElementById('recHint').textContent = 'Tap to stop';
     recStartTime = Date.now();
     recInterval = setInterval(() => {
       const elapsed = Math.floor((Date.now() - recStartTime) / 1000);
-      const m = Math.floor(elapsed / 60);
-      const s = elapsed % 60;
-      document.getElementById('recTimer').textContent = `${m}:${s.toString().padStart(2, '0')}`;
+      document.getElementById('recTimer').textContent =
+        `${Math.floor(elapsed / 60)}:${(elapsed % 60).toString().padStart(2, '0')}`;
     }, 200);
   } catch (err) {
     alert('Could not access microphone. Check your browser permissions.');
@@ -659,8 +597,7 @@ function showCaptionScreen() {
     const vid = document.createElement('video');
     vid.className = 'preview-media';
     vid.src = URL.createObjectURL(currentCapture.blob);
-    vid.controls = true;
-    vid.playsInline = true;
+    vid.controls = true; vid.playsInline = true;
     preview.appendChild(vid);
   } else if (currentCapture.type === 'audio') {
     const audio = document.createElement('audio');
@@ -669,16 +606,17 @@ function showCaptionScreen() {
     audio.controls = true;
     preview.appendChild(audio);
   } else {
-    preview.innerHTML = `
-      <div style="padding:20px; background:var(--surface); border-radius:var(--radius-sm); border:1px solid var(--border); display:flex; align-items:center; gap:12px;">
-        <span style="font-size:28px;">&#128206;</span>
-        <span style="font-size:14px; word-break:break-all;">${currentCapture.filename}</span>
-      </div>`;
+    preview.innerHTML = `<div style="padding:20px; background:var(--surface); border-radius:var(--radius-sm);
+      border:1px solid var(--border); display:flex; align-items:center; gap:12px;">
+      <span style="font-size:28px;">&#128206;</span>
+      <span style="font-size:14px; word-break:break-all;">${escapeHtml(currentCapture.filename)}</span>
+    </div>`;
   }
 
   document.getElementById('captionInput').value = '';
   document.getElementById('charCount').textContent = '0';
-  document.getElementById('captionInput').focus();
+  document.getElementById('sendBtn').disabled = false;
+  setTimeout(() => document.getElementById('captionInput').focus(), 300);
 }
 
 function updateCharCount() {
@@ -686,37 +624,278 @@ function updateCharCount() {
     document.getElementById('captionInput').value.length;
 }
 
-// ---- Save entry ----
-async function saveEntry() {
-  const caption = document.getElementById('captionInput').value.trim();
-  if (!caption) {
-    if (!confirm('Save without a caption? The caption is the most important part!')) return;
-  }
-
-  const arrayBuffer = await currentCapture.blob.arrayBuffer();
-
-  const entry = {
-    id: `entry-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-    timestamp: Date.now(),
-    type: currentCapture.type,
-    filename: currentCapture.filename,
-    mimeType: currentCapture.mimeType,
-    mediaData: arrayBuffer,
-    caption: caption,
-    uploaded: false,
-    studentId: currentStudent.id,
-  };
-
-  await dbPut(entry);
-  currentCapture = null;
-  showScreen('portfolio');
-}
-
 function discardEntry() {
   if (confirm('Discard this entry?')) {
     currentCapture = null;
     showScreen('new');
   }
+}
+
+// ---- Image compression ----
+function compressImage(blob, maxDim, quality) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > maxDim || height > maxDim) {
+        const scale = maxDim / Math.max(width, height);
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob((result) => {
+        URL.revokeObjectURL(img.src);
+        resolve(result);
+      }, 'image/jpeg', quality);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(img.src);
+      resolve(blob);
+    };
+    img.src = URL.createObjectURL(blob);
+  });
+}
+
+// ---- Create thumbnail for local diary ----
+function createThumbnail(blob) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const size = 200;
+      const scale = size / Math.max(img.width, img.height);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(img.src);
+      resolve(canvas.toDataURL('image/jpeg', 0.6));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(img.src);
+      resolve(null);
+    };
+    img.src = URL.createObjectURL(blob);
+  });
+}
+
+// ---- Blob to base64 ----
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64 = reader.result.split(',')[1];
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+// ---- Build filename ----
+function buildFilename(caption, mimeType, originalFilename) {
+  const now = new Date();
+  const dateStr = now.toISOString().slice(0, 10);
+  const timeStr = now.toTimeString().slice(0, 5).replace(':', '');
+  const slug = (caption || 'no-caption')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40).replace(/-$/, '');
+  const ext = {
+    'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp',
+    'audio/webm': 'webm', 'audio/mp4': 'm4a', 'audio/mpeg': 'mp3',
+    'video/mp4': 'mp4', 'video/webm': 'webm',
+  }[mimeType] || (originalFilename && originalFilename.includes('.') ?
+    originalFilename.split('.').pop() : 'bin');
+  return `${dateStr}_${timeStr}_${slug}.${ext}`;
+}
+
+// ---- SEND ----
+async function sendEntry() {
+  const caption = document.getElementById('captionInput').value.trim();
+  if (!caption) {
+    if (!confirm('Send without a caption? The caption is the most important part!')) return;
+  }
+
+  if (!CONFIG.webhookUrl) {
+    alert('The app is not fully set up yet — the researcher needs to configure the upload connection. Your entry has been saved locally.');
+    await saveLocally(caption, 'pending');
+    showScreen('portfolio');
+    return;
+  }
+
+  const sendBtn = document.getElementById('sendBtn');
+  sendBtn.disabled = true;
+  showSendingOverlay('Sending...', 'This might take a moment for large files');
+
+  try {
+    let mediaBlob = currentCapture.blob;
+    let mimeType = currentCapture.mimeType;
+
+    if (currentCapture.type === 'image') {
+      mediaBlob = await compressImage(currentCapture.blob, 1920, 0.85);
+      mimeType = 'image/jpeg';
+    }
+
+    const mediaBase64 = await blobToBase64(mediaBlob);
+    const filename = buildFilename(caption, mimeType, currentCapture.filename);
+
+    const payload = {
+      studentId: currentStudent.id,
+      studentName: currentStudent.name,
+      caption: caption,
+      filename: filename,
+      mediaBase64: mediaBase64,
+      mimeType: mimeType,
+      mediaType: currentCapture.type,
+      timestamp: new Date().toISOString(),
+      originalFilename: currentCapture.filename,
+    };
+
+    const response = await fetch(CONFIG.webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) throw new Error(`Server returned ${response.status}`);
+
+    let thumbnail = null;
+    if (currentCapture.type === 'image') {
+      thumbnail = await createThumbnail(currentCapture.blob);
+    }
+
+    await saveLocally(caption, 'sent', thumbnail, filename);
+    showSuccessOverlay();
+  } catch (err) {
+    console.error('Send failed:', err);
+    await saveLocally(caption, 'failed');
+    hideSendingOverlay();
+    alert('Couldn\'t send right now — your entry has been saved locally. You can retry from your diary.');
+    showScreen('portfolio');
+  }
+
+  currentCapture = null;
+}
+
+async function saveLocally(caption, status, thumbnail, filename) {
+  const entry = {
+    id: `entry-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    timestamp: Date.now(),
+    type: currentCapture?.type || 'unknown',
+    filename: filename || currentCapture?.filename || 'unknown',
+    mimeType: currentCapture?.mimeType || '',
+    caption: caption,
+    status: status,
+    thumbnail: thumbnail,
+    studentId: currentStudent.id,
+  };
+
+  if (status === 'failed' || status === 'pending') {
+    const ab = await currentCapture.blob.arrayBuffer();
+    entry.mediaData = ab;
+  }
+
+  await dbPut(entry);
+}
+
+// ---- Retry failed entries ----
+async function retryEntry(id) {
+  const tx = db.transaction('entries', 'readonly');
+  const req = tx.objectStore('entries').get(id);
+  req.onsuccess = async (e) => {
+    const entry = e.target.result;
+    if (!entry || !entry.mediaData) {
+      alert('Cannot retry — media data not available.');
+      return;
+    }
+
+    if (!CONFIG.webhookUrl) {
+      alert('Upload connection not configured yet.');
+      return;
+    }
+
+    showSendingOverlay('Retrying...', 'Sending your entry');
+
+    try {
+      let mediaBlob = new Blob([entry.mediaData], { type: entry.mimeType });
+      let mimeType = entry.mimeType;
+
+      if (entry.type === 'image') {
+        mediaBlob = await compressImage(mediaBlob, 1920, 0.85);
+        mimeType = 'image/jpeg';
+      }
+
+      const mediaBase64 = await blobToBase64(mediaBlob);
+      const filename = buildFilename(entry.caption, mimeType, entry.filename);
+
+      const payload = {
+        studentId: currentStudent.id,
+        studentName: currentStudent.name,
+        caption: entry.caption,
+        filename: filename,
+        mediaBase64: mediaBase64,
+        mimeType: mimeType,
+        mediaType: entry.type,
+        timestamp: new Date(entry.timestamp).toISOString(),
+        originalFilename: entry.filename,
+      };
+
+      const response = await fetch(CONFIG.webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) throw new Error(`Server returned ${response.status}`);
+
+      entry.status = 'sent';
+      delete entry.mediaData;
+      if (entry.type === 'image' && !entry.thumbnail) {
+        entry.thumbnail = await createThumbnail(new Blob([entry.mediaData], { type: entry.mimeType })).catch(() => null);
+      }
+      await dbPut(entry);
+      showSuccessOverlay();
+    } catch (err) {
+      console.error('Retry failed:', err);
+      hideSendingOverlay();
+      alert('Still couldn\'t send. Check your internet connection and try again.');
+    }
+  };
+}
+
+// ---- Sending overlay ----
+function showSendingOverlay(text, subtext) {
+  document.getElementById('sendingText').textContent = text;
+  document.getElementById('sendingSubtext').textContent = subtext;
+  document.getElementById('sendingSpinner').style.display = '';
+  document.getElementById('sendingOverlay').classList.add('active');
+}
+
+function showSuccessOverlay() {
+  const overlay = document.getElementById('sendingOverlay');
+  document.getElementById('sendingSpinner').style.display = 'none';
+  document.getElementById('sendingText').textContent = 'Sent!';
+  document.getElementById('sendingSubtext').textContent = 'Your entry is safe with your researcher.';
+
+  const icon = document.createElement('div');
+  icon.className = 'success-icon';
+  icon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+  document.getElementById('sendingSpinner').replaceWith(icon);
+
+  setTimeout(() => {
+    overlay.classList.remove('active');
+    const newSpinner = document.createElement('div');
+    newSpinner.className = 'spinner';
+    newSpinner.id = 'sendingSpinner';
+    icon.replaceWith(newSpinner);
+    showScreen('portfolio');
+  }, 1800);
+}
+
+function hideSendingOverlay() {
+  document.getElementById('sendingOverlay').classList.remove('active');
 }
 
 // ---- Portfolio ----
@@ -728,12 +907,11 @@ async function renderPortfolio() {
   if (entries.length === 0) {
     empty.classList.remove('hidden');
     list.innerHTML = '';
-    updateNavBadge(0);
     return;
   }
 
   empty.classList.add('hidden');
-  const pending = entries.filter(e => !e.uploaded).length;
+  const pending = entries.filter(e => e.status === 'failed' || e.status === 'pending').length;
   updateNavBadge(pending);
 
   list.innerHTML = entries.map(entry => {
@@ -742,217 +920,72 @@ async function renderPortfolio() {
     const timeStr = date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
     let mediaHtml = '';
-    if (entry.type === 'image') {
-      const blob = new Blob([entry.mediaData], { type: entry.mimeType });
-      const url = URL.createObjectURL(blob);
-      mediaHtml = `<img class="entry-card-media" src="${url}" alt="Photo" loading="lazy">`;
-    } else if (entry.type === 'video') {
-      const blob = new Blob([entry.mediaData], { type: entry.mimeType });
-      const url = URL.createObjectURL(blob);
-      mediaHtml = `<video class="entry-card-media" src="${url}" style="aspect-ratio:16/9;" controls playsinline></video>`;
+    if (entry.thumbnail) {
+      mediaHtml = `<img class="entry-card-media" src="${entry.thumbnail}" alt="Photo">`;
     } else if (entry.type === 'audio') {
-      const blob = new Blob([entry.mediaData], { type: entry.mimeType });
-      const url = URL.createObjectURL(blob);
-      mediaHtml = `<div class="entry-card-audio"><audio controls style="width:100%;" src="${url}"></audio></div>`;
-    } else {
-      mediaHtml = `<div class="entry-card-file"><span class="file-icon">&#128206;</span><span class="file-name">${entry.filename}</span></div>`;
+      mediaHtml = `<div class="entry-card-file"><span class="file-icon">&#127908;</span><span class="file-name">Voice note</span></div>`;
+    } else if (entry.type === 'video') {
+      mediaHtml = `<div class="entry-card-file"><span class="file-icon">&#127909;</span><span class="file-name">Video</span></div>`;
+    } else if (entry.type !== 'image') {
+      mediaHtml = `<div class="entry-card-file"><span class="file-icon">&#128206;</span><span class="file-name">${escapeHtml(entry.filename)}</span></div>`;
     }
 
     const typeLabel = { image: 'Photo', video: 'Video', audio: 'Voice', file: 'File' }[entry.type] || 'File';
-    const statusBadge = entry.uploaded
-      ? '<span class="badge badge-uploaded">Uploaded</span>'
-      : '<span class="badge badge-pending">Not uploaded</span>';
 
-    return `
-      <div class="entry-card">
-        ${mediaHtml}
-        <div class="entry-card-body">
-          <div class="entry-card-caption">${escapeHtml(entry.caption) || '<em style="color:var(--text-light)">No caption</em>'}</div>
-          <div class="entry-card-meta">
-            <span>${dateStr} ${timeStr}</span>
-            <span><span class="badge badge-type">${typeLabel}</span> ${statusBadge}</span>
-          </div>
-        </div>
-        <div class="entry-card-actions">
-          ${entry.uploaded
-            ? `<button class="btn btn-secondary" onclick="beginUpload('${entry.id}')">&#128194; Re-upload</button>`
-            : `<button class="btn btn-primary" onclick="beginUpload('${entry.id}')">&#128194; Send to OneDrive</button>`
-          }
-          <button class="btn btn-danger" onclick="deleteEntry('${entry.id}')" style="flex:0 0 auto; padding:10px 14px;">&#128465;</button>
-        </div>
+    let statusBadge = '';
+    let actionHtml = '';
+    if (entry.status === 'sent') {
+      statusBadge = '<span class="badge badge-sent">Sent</span>';
+    } else if (entry.status === 'failed') {
+      statusBadge = '<span class="badge badge-failed">Failed</span>';
+      actionHtml = `<div class="entry-card-actions">
+        <button class="btn btn-primary" onclick="retryEntry('${entry.id}')">Retry sending</button>
+        <button class="btn btn-danger" onclick="deleteEntry('${entry.id}')" style="flex:0; padding:10px 14px;">&#128465;</button>
       </div>`;
+    } else if (entry.status === 'pending') {
+      statusBadge = '<span class="badge badge-pending">Waiting</span>';
+      actionHtml = `<div class="entry-card-actions">
+        <button class="btn btn-primary" onclick="retryEntry('${entry.id}')">Send now</button>
+        <button class="btn btn-danger" onclick="deleteEntry('${entry.id}')" style="flex:0; padding:10px 14px;">&#128465;</button>
+      </div>`;
+    }
+
+    return `<div class="entry-card">
+      ${mediaHtml}
+      <div class="entry-card-body">
+        <div class="entry-card-caption">${escapeHtml(entry.caption) || '<em style="color:var(--text-light)">No caption</em>'}</div>
+        <div class="entry-card-meta">
+          <span>${dateStr} ${timeStr}</span>
+          <span><span class="badge badge-type">${typeLabel}</span> ${statusBadge}</span>
+        </div>
+      </div>
+      ${actionHtml}
+    </div>`;
   }).join('');
 }
 
-function updateNavBadge(pendingCount) {
-  const navItems = document.querySelectorAll('.nav-item');
-  const diaryNav = navItems[0];
-  const existing = diaryNav.querySelector('.nav-badge');
+function updateNavBadge(count) {
+  const nav = document.querySelector('.nav-item[data-screen="portfolio"]');
+  const existing = nav.querySelector('.nav-badge');
   if (existing) existing.remove();
-  if (pendingCount > 0) {
+  if (count > 0) {
     const badge = document.createElement('span');
     badge.className = 'nav-badge';
-    badge.textContent = pendingCount;
-    diaryNav.appendChild(badge);
+    badge.textContent = count;
+    nav.appendChild(badge);
   }
-}
-
-// ---- Upload flow ----
-async function beginUpload(entryId) {
-  uploadEntryId = entryId;
-  const store = dbTransaction('entries', 'readonly');
-  const request = store.get(entryId);
-  request.onsuccess = (e) => {
-    const entry = e.target.result;
-    if (!entry) return;
-
-    const preview = document.getElementById('uploadPreview');
-    if (entry.type === 'image') {
-      const blob = new Blob([entry.mediaData], { type: entry.mimeType });
-      preview.innerHTML = `<img src="${URL.createObjectURL(blob)}" style="width:100%; max-height:150px; object-fit:cover; border-radius:var(--radius-sm);">`;
-    } else {
-      preview.innerHTML = `<div style="padding:12px; background:#EEF2FF; border-radius:var(--radius-sm); font-size:14px;">
-        ${entry.type === 'audio' ? '&#127908;' : '&#128206;'} ${entry.filename}</div>`;
-    }
-
-    if (!currentStudent.folder) {
-      document.getElementById('openFolderBtn').classList.add('hidden');
-    } else {
-      document.getElementById('openFolderBtn').classList.remove('hidden');
-    }
-
-    showScreen('upload');
-  };
-}
-
-async function downloadCurrentEntry() {
-  const store = dbTransaction('entries', 'readonly');
-  const request = store.get(uploadEntryId);
-  request.onsuccess = async (e) => {
-    const entry = e.target.result;
-    if (!entry) return;
-
-    if (entry.type === 'image' && entry.caption) {
-      const captionedBlob = await burnCaptionOntoImage(entry);
-      triggerDownload(captionedBlob, buildFilename(entry));
-    } else {
-      const blob = new Blob([entry.mediaData], { type: entry.mimeType });
-      triggerDownload(blob, buildFilename(entry));
-    }
-  };
-}
-
-function buildFilename(entry) {
-  const d = new Date(entry.timestamp);
-  const dateStr = d.toISOString().slice(0, 10);
-  const timeStr = d.toTimeString().slice(0, 5).replace(':', '');
-  const captionSlug = (entry.caption || 'no-caption')
-    .toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40).replace(/-$/, '');
-  const ext = {
-    'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif',
-    'audio/webm': 'webm', 'audio/mp4': 'm4a', 'audio/mpeg': 'mp3',
-    'video/mp4': 'mp4', 'video/webm': 'webm',
-  }[entry.mimeType] || entry.filename.split('.').pop() || 'bin';
-  return `${dateStr}_${timeStr}_${captionSlug}.${ext}`;
-}
-
-function burnCaptionOntoImage(entry) {
-  return new Promise((resolve) => {
-    const img = new Image();
-    const blob = new Blob([entry.mediaData], { type: entry.mimeType });
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const barHeight = Math.max(60, Math.ceil(img.height * 0.1));
-      canvas.width = img.width;
-      canvas.height = img.height + barHeight;
-      const ctx = canvas.getContext('2d');
-
-      ctx.drawImage(img, 0, 0);
-
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
-      ctx.fillRect(0, img.height, canvas.width, barHeight);
-
-      const fontSize = Math.max(14, Math.min(24, Math.floor(img.width / 30)));
-      ctx.fillStyle = 'white';
-      ctx.font = `${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
-      ctx.textBaseline = 'middle';
-
-      const maxWidth = canvas.width - 32;
-      const text = entry.caption;
-      const words = text.split(' ');
-      let lines = [];
-      let currentLine = '';
-      for (const word of words) {
-        const test = currentLine ? currentLine + ' ' + word : word;
-        if (ctx.measureText(test).width > maxWidth && currentLine) {
-          lines.push(currentLine);
-          currentLine = word;
-        } else {
-          currentLine = test;
-        }
-      }
-      if (currentLine) lines.push(currentLine);
-      if (lines.length > 3) lines = lines.slice(0, 3);
-      if (lines.length === 3) lines[2] = lines[2].slice(0, -3) + '...';
-
-      const lineHeight = fontSize * 1.3;
-      const totalTextHeight = lines.length * lineHeight;
-      const startY = img.height + (barHeight - totalTextHeight) / 2 + lineHeight / 2;
-
-      lines.forEach((line, i) => {
-        ctx.fillText(line, 16, startY + i * lineHeight);
-      });
-
-      canvas.toBlob(resolve, 'image/jpeg', 0.92);
-      URL.revokeObjectURL(img.src);
-    };
-    img.src = URL.createObjectURL(blob);
-  });
-}
-
-function triggerDownload(blob, filename) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 5000);
-}
-
-function openOneDriveFolder() {
-  if (currentStudent.folder) {
-    window.open(currentStudent.folder, '_blank');
-  } else {
-    alert('OneDrive folder link not configured yet. Ask your researcher for your personal link.');
-  }
-}
-
-async function markUploaded() {
-  const store = dbTransaction('entries', 'readwrite');
-  const request = store.get(uploadEntryId);
-  request.onsuccess = (e) => {
-    const entry = e.target.result;
-    if (entry) {
-      entry.uploaded = true;
-      dbTransaction('entries', 'readwrite').put(entry);
-    }
-    uploadEntryId = null;
-    showScreen('portfolio');
-  };
 }
 
 // ---- Delete ----
 async function deleteEntry(id) {
-  if (confirm('Delete this entry? This cannot be undone.')) {
+  if (confirm('Delete this entry?')) {
     await dbDelete(id);
     renderPortfolio();
   }
 }
 
 async function confirmClearData() {
-  if (confirm('Delete ALL entries from this device? This cannot be undone. Make sure everything is uploaded to OneDrive first.')) {
+  if (confirm('Clear all local history? This only removes entries from this device — anything already sent is safe with your researcher.')) {
     await dbClear();
     renderPortfolio();
     updateSettings();
@@ -963,26 +996,20 @@ async function confirmClearData() {
 async function updateSettings() {
   if (!currentStudent) return;
   document.getElementById('settingStudent').textContent = `${currentStudent.name} (ID: ${currentStudent.id})`;
-  document.getElementById('settingFolder').textContent = currentStudent.folder || 'Not configured yet';
-
   const entries = await dbGetAll();
-  const uploaded = entries.filter(e => e.uploaded).length;
-  document.getElementById('settingCount').textContent = `${entries.length} entries (${uploaded} uploaded)`;
-
-  if (navigator.storage && navigator.storage.estimate) {
-    const est = await navigator.storage.estimate();
-    const usedMB = (est.usage / 1024 / 1024).toFixed(1);
-    const quotaMB = (est.quota / 1024 / 1024).toFixed(0);
-    document.getElementById('settingStorage').textContent = `${usedMB} MB used of ${quotaMB} MB`;
-  }
+  const sent = entries.filter(e => e.status === 'sent').length;
+  document.getElementById('settingCount').textContent =
+    `${sent} sent, ${entries.length} total in local history`;
+  document.getElementById('settingConnection').textContent =
+    CONFIG.webhookUrl ? 'Connected' : 'Not configured yet';
 }
 
 // ---- Utilities ----
 function escapeHtml(str) {
   if (!str) return '';
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
 }
 </script>
 </body>

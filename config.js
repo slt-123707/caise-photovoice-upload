@@ -1,40 +1,43 @@
-// CAISE Photovoice — Student Configuration
+// CAISE Photovoice — Configuration
 //
-// Fill in each student's OneDrive folder link as you receive them.
-// The "name" field is what students see in the app header — use pseudonyms,
-// first names, or IDs depending on your ethics protocol.
+// 1. Create the Power Automate flow (see setup guide)
+// 2. Paste the webhook URL below
+// 3. Update student names if needed
+// 4. Push to GitHub — the app auto-deploys
 //
-// Each student accesses the app via: https://YOUR-SITE/?s=01 (using their ID below)
+// Each student accesses the app via: https://diary.projectcaise.co.uk/?s=01
 
-const STUDENTS = {
-  "01": { name: "Student 01", folder: "https://liveuclac-my.sharepoint.com/:f:/g/personal/ucetslt_ucl_ac_uk/IgAY9G_k7gr8Q5ftBQRZBkVIAU6GwO3-C6duXs34aa93_6I?email=k045382%40eltham-college.org.uk&e=Ew21f7" },
-  "02": { name: "Student 02", folder: "" },
-  "03": { name: "Student 03", folder: "" },
-  "04": { name: "Student 04", folder: "" },
-  "05": { name: "Student 05", folder: "" },
-  "06": { name: "Student 06", folder: "" },
-  "07": { name: "Student 07", folder: "" },
-  "08": { name: "Student 08", folder: "" },
-  "09": { name: "Student 09", folder: "" },
-  "10": { name: "Student 10", folder: "" },
-  "11": { name: "Student 11", folder: "" },
-  "12": { name: "Student 12", folder: "" },
-  "13": { name: "Student 13", folder: "" },
-  "14": { name: "Student 14", folder: "" },
-  "15": { name: "Student 15", folder: "" },
-  "16": { name: "Student 16", folder: "" },
-  "17": { name: "Student 17", folder: "" },
-  "18": { name: "Student 18", folder: "" },
-  "19": { name: "Student 19", folder: "" },
-  "20": { name: "Student 20", folder: "" },
-  "21": { name: "Student 21", folder: "" },
-  "22": { name: "Student 22", folder: "" },
-};
+const CONFIG = {
+  // Paste your Power Automate webhook URL here
+  webhookUrl: "https://prod-41.uksouth.logic.azure.com:443/workflows/460043e77b8c4419a7c06cded6368662/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=WuytAhVPkmMdk7LK7NxEtQAAE3LGuxpE3ZAdQxhrVxo",
 
-// Study metadata
-const STUDY = {
+  // Study metadata
   title: "CAISE",
   subtitle: "My AI Diary",
-  captureStart: "2026-07-01",  // adjust to your holiday period
-  captureEnd: "2026-09-01",
+
+  // Student list — only the name is needed now (no OneDrive links)
+  students: {
+    "01": { name: "Student 01" },
+    "02": { name: "Student 02" },
+    "03": { name: "Student 03" },
+    "04": { name: "Student 04" },
+    "05": { name: "Student 05" },
+    "06": { name: "Student 06" },
+    "07": { name: "Student 07" },
+    "08": { name: "Student 08" },
+    "09": { name: "Student 09" },
+    "10": { name: "Student 10" },
+    "11": { name: "Student 11" },
+    "12": { name: "Student 12" },
+    "13": { name: "Student 13" },
+    "14": { name: "Student 14" },
+    "15": { name: "Student 15" },
+    "16": { name: "Student 16" },
+    "17": { name: "Student 17" },
+    "18": { name: "Student 18" },
+    "19": { name: "Student 19" },
+    "20": { name: "Student 20" },
+    "21": { name: "Student 21" },
+    "22": { name: "Student 22" },
+  },
 };
