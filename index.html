@@ -301,6 +301,21 @@ body {
     </div>
   </div>
 
+  <!-- Screen: Camera viewfinder -->
+  <div class="screen" id="screen-camera">
+    <div class="content" style="display:flex; flex-direction:column; align-items:center; padding:0; position:relative; overflow:hidden;">
+      <video id="cameraPreview" autoplay playsinline muted
+        style="width:100%; max-height:calc(100dvh - 180px); object-fit:cover; background:#000;"></video>
+      <div style="position:absolute; bottom:0; left:0; right:0; padding:20px; display:flex; justify-content:center; align-items:center; gap:20px; background:linear-gradient(transparent, rgba(0,0,0,0.6));">
+        <button class="btn btn-secondary" onclick="closeCamera()" style="border-color:white; color:white; padding:10px 20px;">Cancel</button>
+        <button id="shutterBtn" onclick="takePhoto()"
+          style="width:68px; height:68px; border-radius:50%; border:4px solid white; background:rgba(255,255,255,0.3); cursor:pointer; -webkit-tap-highlight-color:transparent;">
+        </button>
+        <button onclick="flipCamera()" class="btn" style="background:rgba(255,255,255,0.2); color:white; padding:10px 20px; font-size:20px;">&#128260;</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Screen: Voice recorder -->
   <div class="screen" id="screen-recorder">
     <div class="content" style="display:flex; flex-direction:column; align-items:center; justify-content:center;">
@@ -532,11 +547,57 @@ function handleFileSelect(e) {
 }
 
 // ---- Capture ----
+let cameraStream = null;
+let facingMode = 'environment';
+
 function startCapture(mode) {
-  if (mode === 'camera') document.getElementById('cameraInput').click();
+  if (mode === 'camera') openCamera();
   else if (mode === 'gallery') document.getElementById('galleryInput').click();
   else if (mode === 'voice') { showScreen('recorder'); resetRecorder(); }
   else if (mode === 'file') document.getElementById('fileInput').click();
+}
+
+async function openCamera() {
+  showScreen('camera');
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: facingMode, width: { ideal: 1920 }, height: { ideal: 1440 } },
+      audio: false,
+    });
+    document.getElementById('cameraPreview').srcObject = cameraStream;
+  } catch (err) {
+    closeCamera();
+    alert('Could not access camera. Check your browser permissions.');
+  }
+}
+
+function takePhoto() {
+  const video = document.getElementById('cameraPreview');
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  closeCamera();
+  canvas.toBlob((blob) => {
+    currentCapture = { type: 'image', blob, filename: `photo-${Date.now()}.jpg`, mimeType: 'image/jpeg' };
+    showCaptionScreen();
+  }, 'image/jpeg', 0.92);
+}
+
+function flipCamera() {
+  facingMode = facingMode === 'environment' ? 'user' : 'environment';
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(t => t.stop());
+  }
+  openCamera();
+}
+
+function closeCamera() {
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(t => t.stop());
+    cameraStream = null;
+  }
+  document.getElementById('cameraPreview').srcObject = null;
 }
 
 // ---- Voice recording ----
