@@ -517,6 +517,7 @@ function dbClear() {
 
 // ---- Navigation ----
 function showScreen(name) {
+  if (name !== 'camera') closeCamera();
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(`screen-${name}`).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
