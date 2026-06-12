@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#6C63FF">
+<link rel="manifest" href="manifest.json">
+<title>CAISE — My AI Diary</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --purple: #6C63FF;
+  --purple-light: #8B83FF;
+  --purple-dark: #4A42CC;
+  --bg: #F5F4FF;
+  --surface: #FFFFFF;
+  --text: #1A1A2E;
+  --text-light: #6B7280;
+  --border: #E5E7EB;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 2px 12px rgba(108, 99, 255, 0.08);
+  --shadow-lg: 0 8px 30px rgba(108, 99, 255, 0.12);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- Layout ---- */
+.app { max-width: 500px; margin: 0 auto; min-height: 100dvh; display: flex; flex-direction: column; }
+
+.header {
+  background: var(--purple);
+  color: white;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header h1 { font-size: 18px; font-weight: 700; }
+.header .subtitle { font-size: 12px; opacity: 0.8; }
+.header-left { display: flex; flex-direction: column; }
+.header-right { display: flex; gap: 8px; }
+
+.screen { display: none; flex: 1; flex-direction: column; }
+.screen.active { display: flex; }
+
+.content { flex: 1; padding: 16px; overflow-y: auto; }
+
+/* ---- Buttons ---- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 14px 24px; border-radius: var(--radius-sm); font-size: 16px;
+  font-weight: 600; border: none; cursor: pointer; transition: all 0.2s;
+  text-decoration: none; -webkit-tap-highlight-color: transparent;
+}
+.btn-primary { background: var(--purple); color: white; }
+.btn-primary:hover { background: var(--purple-dark); }
+.btn-secondary { background: var(--surface); color: var(--purple); border: 2px solid var(--purple); }
+.btn-success { background: var(--success); color: white; }
+.btn-danger { background: white; color: var(--danger); border: 2px solid var(--danger); }
+.btn-full { width: 100%; }
+.btn-icon {
+  width: 40px; height: 40px; padding: 0; border-radius: 50%;
+  background: rgba(255,255,255,0.2); color: white; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ---- Capture type selector ---- */
+.capture-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 8px 0;
+}
+.capture-card {
+  background: var(--surface); border: 2px solid var(--border); border-radius: var(--radius);
+  padding: 24px 16px; text-align: center; cursor: pointer; transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.capture-card:hover, .capture-card:active { border-color: var(--purple); background: #F5F3FF; }
+.capture-card .icon { font-size: 32px; margin-bottom: 8px; }
+.capture-card .label { font-size: 14px; font-weight: 600; color: var(--text); }
+.capture-card .desc { font-size: 11px; color: var(--text-light); margin-top: 4px; }
+
+/* ---- Caption editor ---- */
+.caption-area {
+  width: 100%; min-height: 120px; padding: 16px; border: 2px solid var(--border);
+  border-radius: var(--radius-sm); font-size: 16px; font-family: inherit;
+  resize: vertical; transition: border-color 0.2s; line-height: 1.5;
+}
+.caption-area:focus { outline: none; border-color: var(--purple); }
+.caption-area::placeholder { color: #9CA3AF; }
+
+.preview-media {
+  width: 100%; max-height: 300px; object-fit: contain; border-radius: var(--radius-sm);
+  background: #000;
+}
+.audio-preview { width: 100%; margin: 12px 0; }
+
+.char-count { text-align: right; font-size: 12px; color: var(--text-light); margin-top: 4px; }
+
+/* ---- Portfolio ---- */
+.empty-state {
+  text-align: center; padding: 60px 20px; color: var(--text-light);
+}
+.empty-state .icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+.empty-state h2 { font-size: 18px; margin-bottom: 8px; color: var(--text); }
+.empty-state p { font-size: 14px; line-height: 1.5; }
+
+.entry-card {
+  background: var(--surface); border-radius: var(--radius); overflow: hidden;
+  box-shadow: var(--shadow); margin-bottom: 16px; transition: all 0.2s;
+}
+.entry-card-media {
+  width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; background: #000;
+}
+.entry-card-audio { width: 100%; padding: 16px 16px 0; }
+.entry-card-file { padding: 20px 16px 4px; display: flex; align-items: center; gap: 12px; color: var(--text-light); }
+.entry-card-file .file-icon { font-size: 28px; }
+.entry-card-file .file-name { font-size: 13px; word-break: break-all; }
+.entry-card-body { padding: 16px; }
+.entry-card-caption { font-size: 15px; line-height: 1.5; margin-bottom: 12px; white-space: pre-wrap; }
+.entry-card-meta { font-size: 12px; color: var(--text-light); display: flex; justify-content: space-between; align-items: center; }
+.entry-card-actions { display: flex; gap: 8px; padding: 0 16px 16px; }
+.entry-card-actions .btn { flex: 1; padding: 10px; font-size: 13px; }
+
+.badge {
+  display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;
+}
+.badge-uploaded { background: #D1FAE5; color: #065F46; }
+.badge-pending { background: #FEF3C7; color: #92400E; }
+.badge-type { background: #EEF2FF; color: var(--purple); }
+
+/* ---- Upload flow ---- */
+.upload-steps {
+  background: var(--surface); border-radius: var(--radius); padding: 20px;
+  box-shadow: var(--shadow);
+}
+.upload-step {
+  display: flex; gap: 14px; padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.upload-step:last-child { border-bottom: none; }
+.step-num {
+  width: 28px; height: 28px; border-radius: 50%; background: var(--purple);
+  color: white; display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; flex-shrink: 0;
+}
+.step-text { font-size: 14px; line-height: 1.5; }
+.step-text strong { color: var(--purple); }
+
+/* ---- Recording ---- */
+.recorder {
+  display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 40px 0;
+}
+.rec-btn {
+  width: 80px; height: 80px; border-radius: 50%; border: 4px solid var(--danger);
+  background: white; cursor: pointer; display: flex; align-items: center;
+  justify-content: center; transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.rec-btn.recording { background: var(--danger); animation: pulse 1.5s infinite; }
+.rec-btn .rec-dot {
+  width: 28px; height: 28px; border-radius: 50%; background: var(--danger); transition: all 0.2s;
+}
+.rec-btn.recording .rec-dot { border-radius: 4px; width: 24px; height: 24px; background: white; }
+.rec-timer { font-size: 24px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  50% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+}
+
+/* ---- Settings ---- */
+.setting-group { margin-bottom: 24px; }
+.setting-label { font-size: 13px; font-weight: 600; color: var(--text-light); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+.setting-value {
+  background: var(--surface); padding: 14px 16px; border-radius: var(--radius-sm);
+  font-size: 14px; border: 1px solid var(--border); word-break: break-all;
+}
+
+/* ---- Nav ---- */
+.bottom-nav {
+  display: flex; background: var(--surface); border-top: 1px solid var(--border);
+  position: sticky; bottom: 0; z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 10px 0; font-size: 10px; color: var(--text-light); cursor: pointer;
+  border: none; background: none; -webkit-tap-highlight-color: transparent;
+  transition: color 0.2s;
+}
+.nav-item.active { color: var(--purple); }
+.nav-item .nav-icon { font-size: 22px; }
+.nav-badge {
+  position: absolute; top: 4px; right: calc(50% - 18px); background: var(--danger);
+  color: white; font-size: 10px; width: 18px; height: 18px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-weight: 700;
+}
+.nav-item { position: relative; }
+
+/* ---- Modal ---- */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200;
+  display: none; align-items: flex-end; justify-content: center;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: var(--surface); border-radius: var(--radius) var(--radius) 0 0;
+  width: 100%; max-width: 500px; max-height: 85dvh; overflow-y: auto;
+  padding: 24px 20px; padding-bottom: calc(24px + env(safe-area-inset-bottom, 0));
+  animation: slideUp 0.3s ease-out;
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.modal h2 { font-size: 18px; margin-bottom: 16px; }
+
+/* ---- Utilities ---- */
+.gap-12 { display: flex; flex-direction: column; gap: 12px; }
+.gap-16 { display: flex; flex-direction: column; gap: 16px; }
+.mt-8 { margin-top: 8px; }
+.mt-16 { margin-top: 16px; }
+.mb-16 { margin-bottom: 16px; }
+.text-center { text-align: center; }
+.text-sm { font-size: 13px; }
+.text-light { color: var(--text-light); }
+.hidden { display: none !important; }
+
+/* ---- Prompt labels ---- */
+.prompt-label {
+  font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 6px;
+}
+.prompt-hint {
+  font-size: 13px; color: var(--text-light); margin-bottom: 12px; line-height: 1.4;
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <h1 id="headerTitle">CAISE</h1>
+      <span class="subtitle" id="headerSubtitle">My AI Diary</span>
+    </div>
+    <div class="header-right">
+      <button class="btn-icon" onclick="showScreen('settings')" aria-label="Settings">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" transform="scale(0.83) translate(1,1)"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Screen: Portfolio (home) -->
+  <div class="screen active" id="screen-portfolio">
+    <div class="content" id="portfolioContent">
+      <div class="empty-state" id="emptyState">
+        <div class="icon">&#128247;</div>
+        <h2>Your diary is empty</h2>
+        <p>Tap the + button below to capture your first moment with AI.</p>
+      </div>
+      <div id="entryList"></div>
+    </div>
+    <div style="height: 60px;"></div>
+  </div>
+
+  <!-- Screen: New capture type -->
+  <div class="screen" id="screen-new">
+    <div class="content">
+      <h2 class="mb-16">What do you want to capture?</h2>
+      <div class="capture-grid">
+        <div class="capture-card" onclick="startCapture('camera')">
+          <div class="icon">&#128248;</div>
+          <div class="label">Photo</div>
+          <div class="desc">Take a picture</div>
+        </div>
+        <div class="capture-card" onclick="startCapture('gallery')">
+          <div class="icon">&#128444;&#65039;</div>
+          <div class="label">Gallery</div>
+          <div class="desc">Pick an image or screenshot</div>
+        </div>
+        <div class="capture-card" onclick="startCapture('voice')">
+          <div class="icon">&#127908;</div>
+          <div class="label">Voice note</div>
+          <div class="desc">Record yourself</div>
+        </div>
+        <div class="capture-card" onclick="startCapture('file')">
+          <div class="icon">&#128206;</div>
+          <div class="label">File</div>
+          <div class="desc">Any other file</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen: Voice recorder -->
+  <div class="screen" id="screen-recorder">
+    <div class="content" style="display:flex; flex-direction:column; align-items:center; justify-content:center;">
+      <div class="recorder">
+        <p class="text-sm text-light">Tap to start recording</p>
+        <div class="rec-timer" id="recTimer">0:00</div>
+        <button class="rec-btn" id="recBtn" onclick="toggleRecording()">
+          <div class="rec-dot"></div>
+        </button>
+        <p class="text-sm text-light" id="recHint">Tap the circle to start</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen: Caption editor -->
+  <div class="screen" id="screen-caption">
+    <div class="content gap-16">
+      <div id="mediaPreview"></div>
+      <div>
+        <div class="prompt-label">What's happening here?</div>
+        <div class="prompt-hint">Describe this moment — what were you doing with AI? What did you think or feel?</div>
+        <textarea
+          class="caption-area"
+          id="captionInput"
+          placeholder="Write your caption here..."
+          maxlength="1000"
+          oninput="updateCharCount()"
+        ></textarea>
+        <div class="char-count"><span id="charCount">0</span> / 1000</div>
+      </div>
+      <div class="gap-12">
+        <button class="btn btn-primary btn-full" onclick="saveEntry()">Save to diary</button>
+        <button class="btn btn-secondary btn-full" onclick="discardEntry()">Discard</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen: Upload -->
+  <div class="screen" id="screen-upload">
+    <div class="content gap-16">
+      <h2>Send to OneDrive</h2>
+      <div id="uploadPreview"></div>
+      <div class="upload-steps">
+        <div class="upload-step">
+          <div class="step-num">1</div>
+          <div class="step-text">Tap <strong>"Download file"</strong> below to save the file to your device.</div>
+        </div>
+        <div class="upload-step">
+          <div class="step-num">2</div>
+          <div class="step-text">Tap <strong>"Open OneDrive folder"</strong> — it will open your personal folder.</div>
+        </div>
+        <div class="upload-step">
+          <div class="step-num">3</div>
+          <div class="step-text">Tap <strong>Upload</strong> in OneDrive and select the file you just downloaded.</div>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full" id="downloadBtn" onclick="downloadCurrentEntry()">
+        &#128229; Download file
+      </button>
+      <button class="btn btn-success btn-full" id="openFolderBtn" onclick="openOneDriveFolder()">
+        &#128194; Open OneDrive folder
+      </button>
+      <button class="btn btn-secondary btn-full" onclick="markUploaded()">
+        &#9989; Done — I've uploaded it
+      </button>
+      <button class="btn btn-full" style="background:none; color:var(--text-light);" onclick="showScreen('portfolio')">
+        Cancel
+      </button>
+    </div>
+  </div>
+
+  <!-- Screen: Settings -->
+  <div class="screen" id="screen-settings">
+    <div class="content gap-16">
+      <h2>Settings</h2>
+      <div class="setting-group">
+        <div class="setting-label">Student</div>
+        <div class="setting-value" id="settingStudent">—</div>
+      </div>
+      <div class="setting-group">
+        <div class="setting-label">OneDrive folder</div>
+        <div class="setting-value" id="settingFolder">Not configured</div>
+      </div>
+      <div class="setting-group">
+        <div class="setting-label">Entries</div>
+        <div class="setting-value" id="settingCount">0 entries (0 uploaded)</div>
+      </div>
+      <div class="setting-group">
+        <div class="setting-label">Storage</div>
+        <div class="setting-value" id="settingStorage">—</div>
+      </div>
+      <button class="btn btn-danger btn-full" onclick="confirmClearData()">Clear all local data</button>
+      <p class="text-sm text-light text-center mt-8">
+        CAISE Photovoice v1.0<br>
+        All data stored locally on your device.<br>
+        Nothing is sent anywhere until you upload to OneDrive.
+      </p>
+    </div>
+  </div>
+
+  <!-- Screen: Error / no student -->
+  <div class="screen" id="screen-error">
+    <div class="content">
+      <div class="empty-state">
+        <div class="icon">&#128275;</div>
+        <h2>Link not recognised</h2>
+        <p>This app needs a personal link from your researcher. It should look like:<br><br>
+        <code style="background:#EEF2FF; padding:4px 8px; border-radius:4px; font-size:13px;">
+          yoursite.github.io/?s=01
+        </code><br><br>
+        Check the link you were given, or ask your researcher for help.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom nav -->
+  <div class="bottom-nav" id="bottomNav">
+    <button class="nav-item active" onclick="showScreen('portfolio')" data-screen="portfolio">
+      <span class="nav-icon">&#128214;</span>
+      Diary
+    </button>
+    <button class="nav-item" onclick="showScreen('new')" data-screen="new"
+      style="background:var(--purple); color:white; border-radius:0; margin:0;">
+      <span class="nav-icon" style="font-size:28px;">+</span>
+      New
+    </button>
+    <button class="nav-item" onclick="showScreen('settings')" data-screen="settings">
+      <span class="nav-icon">&#9881;&#65039;</span>
+      Settings
+    </button>
+  </div>
+</div>
+
+<!-- Hidden file inputs -->
+<input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none">
+<input type="file" id="galleryInput" accept="image/*,video/*" style="display:none">
+<input type="file" id="fileInput" style="display:none">
+
+<script src="config.js"></script>
+<script>
+// ---- State ----
+let currentStudent = null;
+let currentCapture = null;   // { type, blob, filename, mimeType }
+let uploadEntryId = null;
+let mediaRecorder = null;
+let audioChunks = [];
+let recInterval = null;
+let recStartTime = 0;
+
+const DB_NAME = 'caise-diary';
+const DB_VERSION = 1;
+let db = null;
+
+// ---- Init ----
+window.addEventListener('DOMContentLoaded', async () => {
+  const params = new URLSearchParams(window.location.search);
+  const studentId = params.get('s');
+
+  if (!studentId || !STUDENTS[studentId]) {
+    document.getElementById('screen-error').classList.add('active');
+    document.getElementById('bottomNav').classList.add('hidden');
+    document.querySelector('.screen.active')?.classList.remove('active');
+    document.getElementById('screen-error').classList.add('active');
+    return;
+  }
+
+  currentStudent = { id: studentId, ...STUDENTS[studentId] };
+  document.getElementById('headerSubtitle').textContent =
+    STUDY.subtitle + (currentStudent.name ? ` — ${currentStudent.name}` : '');
+
+  await initDB();
+  renderPortfolio();
+  updateSettings();
+  setupFileInputs();
+});
+
+// ---- IndexedDB ----
+function initDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('entries')) {
+        const store = db.createObjectStore('entries', { keyPath: 'id' });
+        store.createIndex('timestamp', 'timestamp', { unique: false });
+      }
+    };
+    request.onsuccess = (e) => { db = e.target.result; resolve(); };
+    request.onerror = (e) => reject(e.target.error);
+  });
+}
+
+function dbTransaction(storeName, mode) {
+  return db.transaction(storeName, mode).objectStore(storeName);
+}
+
+function dbGetAll() {
+  return new Promise((resolve, reject) => {
+    const request = dbTransaction('entries', 'readonly').index('timestamp').openCursor(null, 'prev');
+    const results = [];
+    request.onsuccess = (e) => {
+      const cursor = e.target.result;
+      if (cursor) { results.push(cursor.value); cursor.continue(); }
+      else resolve(results);
+    };
+    request.onerror = (e) => reject(e.target.error);
+  });
+}
+
+function dbPut(entry) {
+  return new Promise((resolve, reject) => {
+    const request = dbTransaction('entries', 'readwrite').put(entry);
+    request.onsuccess = () => resolve();
+    request.onerror = (e) => reject(e.target.error);
+  });
+}
+
+function dbDelete(id) {
+  return new Promise((resolve, reject) => {
+    const request = dbTransaction('entries', 'readwrite').delete(id);
+    request.onsuccess = () => resolve();
+    request.onerror = (e) => reject(e.target.error);
+  });
+}
+
+function dbClear() {
+  return new Promise((resolve, reject) => {
+    const request = dbTransaction('entries', 'readwrite').clear();
+    request.onsuccess = () => resolve();
+    request.onerror = (e) => reject(e.target.error);
+  });
+}
+
+// ---- Navigation ----
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(`screen-${name}`).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelector(`.nav-item[data-screen="${name}"]`)?.classList.add('active');
+
+  if (name === 'portfolio') renderPortfolio();
+  if (name === 'settings') updateSettings();
+}
+
+// ---- File input setup ----
+function setupFileInputs() {
+  document.getElementById('cameraInput').addEventListener('change', handleFileSelect);
+  document.getElementById('galleryInput').addEventListener('change', handleFileSelect);
+  document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+}
+
+function handleFileSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  currentCapture = {
+    type: file.type.startsWith('image/') ? 'image' : file.type.startsWith('video/') ? 'video' : 'file',
+    blob: file,
+    filename: file.name,
+    mimeType: file.type,
+  };
+  e.target.value = '';
+  showCaptionScreen();
+}
+
+// ---- Capture ----
+function startCapture(mode) {
+  if (mode === 'camera') {
+    document.getElementById('cameraInput').click();
+  } else if (mode === 'gallery') {
+    document.getElementById('galleryInput').click();
+  } else if (mode === 'voice') {
+    showScreen('recorder');
+    resetRecorder();
+  } else if (mode === 'file') {
+    document.getElementById('fileInput').click();
+  }
+}
+
+// ---- Voice recording ----
+function resetRecorder() {
+  document.getElementById('recTimer').textContent = '0:00';
+  document.getElementById('recBtn').classList.remove('recording');
+  document.getElementById('recHint').textContent = 'Tap the circle to start';
+  audioChunks = [];
+  if (recInterval) clearInterval(recInterval);
+}
+
+async function toggleRecording() {
+  const btn = document.getElementById('recBtn');
+
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop();
+    btn.classList.remove('recording');
+    document.getElementById('recHint').textContent = 'Processing...';
+    clearInterval(recInterval);
+    return;
+  }
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioChunks = [];
+    mediaRecorder = new MediaRecorder(stream);
+
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) audioChunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = () => {
+      stream.getTracks().forEach(t => t.stop());
+      const blob = new Blob(audioChunks, { type: 'audio/webm' });
+      currentCapture = {
+        type: 'audio',
+        blob: blob,
+        filename: `voice-${Date.now()}.webm`,
+        mimeType: 'audio/webm',
+      };
+      showCaptionScreen();
+    };
+
+    mediaRecorder.start();
+    btn.classList.add('recording');
+    document.getElementById('recHint').textContent = 'Tap to stop';
+    recStartTime = Date.now();
+    recInterval = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - recStartTime) / 1000);
+      const m = Math.floor(elapsed / 60);
+      const s = elapsed % 60;
+      document.getElementById('recTimer').textContent = `${m}:${s.toString().padStart(2, '0')}`;
+    }, 200);
+  } catch (err) {
+    alert('Could not access microphone. Check your browser permissions.');
+  }
+}
+
+// ---- Caption screen ----
+function showCaptionScreen() {
+  showScreen('caption');
+  const preview = document.getElementById('mediaPreview');
+  preview.innerHTML = '';
+
+  if (currentCapture.type === 'image') {
+    const img = document.createElement('img');
+    img.className = 'preview-media';
+    img.src = URL.createObjectURL(currentCapture.blob);
+    preview.appendChild(img);
+  } else if (currentCapture.type === 'video') {
+    const vid = document.createElement('video');
+    vid.className = 'preview-media';
+    vid.src = URL.createObjectURL(currentCapture.blob);
+    vid.controls = true;
+    vid.playsInline = true;
+    preview.appendChild(vid);
+  } else if (currentCapture.type === 'audio') {
+    const audio = document.createElement('audio');
+    audio.className = 'audio-preview';
+    audio.src = URL.createObjectURL(currentCapture.blob);
+    audio.controls = true;
+    preview.appendChild(audio);
+  } else {
+    preview.innerHTML = `
+      <div style="padding:20px; background:var(--surface); border-radius:var(--radius-sm); border:1px solid var(--border); display:flex; align-items:center; gap:12px;">
+        <span style="font-size:28px;">&#128206;</span>
+        <span style="font-size:14px; word-break:break-all;">${currentCapture.filename}</span>
+      </div>`;
+  }
+
+  document.getElementById('captionInput').value = '';
+  document.getElementById('charCount').textContent = '0';
+  document.getElementById('captionInput').focus();
+}
+
+function updateCharCount() {
+  document.getElementById('charCount').textContent =
+    document.getElementById('captionInput').value.length;
+}
+
+// ---- Save entry ----
+async function saveEntry() {
+  const caption = document.getElementById('captionInput').value.trim();
+  if (!caption) {
+    if (!confirm('Save without a caption? The caption is the most important part!')) return;
+  }
+
+  const arrayBuffer = await currentCapture.blob.arrayBuffer();
+
+  const entry = {
+    id: `entry-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    timestamp: Date.now(),
+    type: currentCapture.type,
+    filename: currentCapture.filename,
+    mimeType: currentCapture.mimeType,
+    mediaData: arrayBuffer,
+    caption: caption,
+    uploaded: false,
+    studentId: currentStudent.id,
+  };
+
+  await dbPut(entry);
+  currentCapture = null;
+  showScreen('portfolio');
+}
+
+function discardEntry() {
+  if (confirm('Discard this entry?')) {
+    currentCapture = null;
+    showScreen('new');
+  }
+}
+
+// ---- Portfolio ----
+async function renderPortfolio() {
+  const entries = await dbGetAll();
+  const list = document.getElementById('entryList');
+  const empty = document.getElementById('emptyState');
+
+  if (entries.length === 0) {
+    empty.classList.remove('hidden');
+    list.innerHTML = '';
+    updateNavBadge(0);
+    return;
+  }
+
+  empty.classList.add('hidden');
+  const pending = entries.filter(e => !e.uploaded).length;
+  updateNavBadge(pending);
+
+  list.innerHTML = entries.map(entry => {
+    const date = new Date(entry.timestamp);
+    const dateStr = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    const timeStr = date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+
+    let mediaHtml = '';
+    if (entry.type === 'image') {
+      const blob = new Blob([entry.mediaData], { type: entry.mimeType });
+      const url = URL.createObjectURL(blob);
+      mediaHtml = `<img class="entry-card-media" src="${url}" alt="Photo" loading="lazy">`;
+    } else if (entry.type === 'video') {
+      const blob = new Blob([entry.mediaData], { type: entry.mimeType });
+      const url = URL.createObjectURL(blob);
+      mediaHtml = `<video class="entry-card-media" src="${url}" style="aspect-ratio:16/9;" controls playsinline></video>`;
+    } else if (entry.type === 'audio') {
+      const blob = new Blob([entry.mediaData], { type: entry.mimeType });
+      const url = URL.createObjectURL(blob);
+      mediaHtml = `<div class="entry-card-audio"><audio controls style="width:100%;" src="${url}"></audio></div>`;
+    } else {
+      mediaHtml = `<div class="entry-card-file"><span class="file-icon">&#128206;</span><span class="file-name">${entry.filename}</span></div>`;
+    }
+
+    const typeLabel = { image: 'Photo', video: 'Video', audio: 'Voice', file: 'File' }[entry.type] || 'File';
+    const statusBadge = entry.uploaded
+      ? '<span class="badge badge-uploaded">Uploaded</span>'
+      : '<span class="badge badge-pending">Not uploaded</span>';
+
+    return `
+      <div class="entry-card">
+        ${mediaHtml}
+        <div class="entry-card-body">
+          <div class="entry-card-caption">${escapeHtml(entry.caption) || '<em style="color:var(--text-light)">No caption</em>'}</div>
+          <div class="entry-card-meta">
+            <span>${dateStr} ${timeStr}</span>
+            <span><span class="badge badge-type">${typeLabel}</span> ${statusBadge}</span>
+          </div>
+        </div>
+        <div class="entry-card-actions">
+          ${entry.uploaded
+            ? `<button class="btn btn-secondary" onclick="beginUpload('${entry.id}')">&#128194; Re-upload</button>`
+            : `<button class="btn btn-primary" onclick="beginUpload('${entry.id}')">&#128194; Send to OneDrive</button>`
+          }
+          <button class="btn btn-danger" onclick="deleteEntry('${entry.id}')" style="flex:0 0 auto; padding:10px 14px;">&#128465;</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function updateNavBadge(pendingCount) {
+  const navItems = document.querySelectorAll('.nav-item');
+  const diaryNav = navItems[0];
+  const existing = diaryNav.querySelector('.nav-badge');
+  if (existing) existing.remove();
+  if (pendingCount > 0) {
+    const badge = document.createElement('span');
+    badge.className = 'nav-badge';
+    badge.textContent = pendingCount;
+    diaryNav.appendChild(badge);
+  }
+}
+
+// ---- Upload flow ----
+async function beginUpload(entryId) {
+  uploadEntryId = entryId;
+  const store = dbTransaction('entries', 'readonly');
+  const request = store.get(entryId);
+  request.onsuccess = (e) => {
+    const entry = e.target.result;
+    if (!entry) return;
+
+    const preview = document.getElementById('uploadPreview');
+    if (entry.type === 'image') {
+      const blob = new Blob([entry.mediaData], { type: entry.mimeType });
+      preview.innerHTML = `<img src="${URL.createObjectURL(blob)}" style="width:100%; max-height:150px; object-fit:cover; border-radius:var(--radius-sm);">`;
+    } else {
+      preview.innerHTML = `<div style="padding:12px; background:#EEF2FF; border-radius:var(--radius-sm); font-size:14px;">
+        ${entry.type === 'audio' ? '&#127908;' : '&#128206;'} ${entry.filename}</div>`;
+    }
+
+    if (!currentStudent.folder) {
+      document.getElementById('openFolderBtn').classList.add('hidden');
+    } else {
+      document.getElementById('openFolderBtn').classList.remove('hidden');
+    }
+
+    showScreen('upload');
+  };
+}
+
+async function downloadCurrentEntry() {
+  const store = dbTransaction('entries', 'readonly');
+  const request = store.get(uploadEntryId);
+  request.onsuccess = async (e) => {
+    const entry = e.target.result;
+    if (!entry) return;
+
+    if (entry.type === 'image' && entry.caption) {
+      const captionedBlob = await burnCaptionOntoImage(entry);
+      triggerDownload(captionedBlob, buildFilename(entry));
+    } else {
+      const blob = new Blob([entry.mediaData], { type: entry.mimeType });
+      triggerDownload(blob, buildFilename(entry));
+    }
+  };
+}
+
+function buildFilename(entry) {
+  const d = new Date(entry.timestamp);
+  const dateStr = d.toISOString().slice(0, 10);
+  const timeStr = d.toTimeString().slice(0, 5).replace(':', '');
+  const captionSlug = (entry.caption || 'no-caption')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40).replace(/-$/, '');
+  const ext = {
+    'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif',
+    'audio/webm': 'webm', 'audio/mp4': 'm4a', 'audio/mpeg': 'mp3',
+    'video/mp4': 'mp4', 'video/webm': 'webm',
+  }[entry.mimeType] || entry.filename.split('.').pop() || 'bin';
+  return `${dateStr}_${timeStr}_${captionSlug}.${ext}`;
+}
+
+function burnCaptionOntoImage(entry) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const blob = new Blob([entry.mediaData], { type: entry.mimeType });
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const barHeight = Math.max(60, Math.ceil(img.height * 0.1));
+      canvas.width = img.width;
+      canvas.height = img.height + barHeight;
+      const ctx = canvas.getContext('2d');
+
+      ctx.drawImage(img, 0, 0);
+
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+      ctx.fillRect(0, img.height, canvas.width, barHeight);
+
+      const fontSize = Math.max(14, Math.min(24, Math.floor(img.width / 30)));
+      ctx.fillStyle = 'white';
+      ctx.font = `${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+      ctx.textBaseline = 'middle';
+
+      const maxWidth = canvas.width - 32;
+      const text = entry.caption;
+      const words = text.split(' ');
+      let lines = [];
+      let currentLine = '';
+      for (const word of words) {
+        const test = currentLine ? currentLine + ' ' + word : word;
+        if (ctx.measureText(test).width > maxWidth && currentLine) {
+          lines.push(currentLine);
+          currentLine = word;
+        } else {
+          currentLine = test;
+        }
+      }
+      if (currentLine) lines.push(currentLine);
+      if (lines.length > 3) lines = lines.slice(0, 3);
+      if (lines.length === 3) lines[2] = lines[2].slice(0, -3) + '...';
+
+      const lineHeight = fontSize * 1.3;
+      const totalTextHeight = lines.length * lineHeight;
+      const startY = img.height + (barHeight - totalTextHeight) / 2 + lineHeight / 2;
+
+      lines.forEach((line, i) => {
+        ctx.fillText(line, 16, startY + i * lineHeight);
+      });
+
+      canvas.toBlob(resolve, 'image/jpeg', 0.92);
+      URL.revokeObjectURL(img.src);
+    };
+    img.src = URL.createObjectURL(blob);
+  });
+}
+
+function triggerDownload(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+function openOneDriveFolder() {
+  if (currentStudent.folder) {
+    window.open(currentStudent.folder, '_blank');
+  } else {
+    alert('OneDrive folder link not configured yet. Ask your researcher for your personal link.');
+  }
+}
+
+async function markUploaded() {
+  const store = dbTransaction('entries', 'readwrite');
+  const request = store.get(uploadEntryId);
+  request.onsuccess = (e) => {
+    const entry = e.target.result;
+    if (entry) {
+      entry.uploaded = true;
+      dbTransaction('entries', 'readwrite').put(entry);
+    }
+    uploadEntryId = null;
+    showScreen('portfolio');
+  };
+}
+
+// ---- Delete ----
+async function deleteEntry(id) {
+  if (confirm('Delete this entry? This cannot be undone.')) {
+    await dbDelete(id);
+    renderPortfolio();
+  }
+}
+
+async function confirmClearData() {
+  if (confirm('Delete ALL entries from this device? This cannot be undone. Make sure everything is uploaded to OneDrive first.')) {
+    await dbClear();
+    renderPortfolio();
+    updateSettings();
+  }
+}
+
+// ---- Settings ----
+async function updateSettings() {
+  if (!currentStudent) return;
+  document.getElementById('settingStudent').textContent = `${currentStudent.name} (ID: ${currentStudent.id})`;
+  document.getElementById('settingFolder').textContent = currentStudent.folder || 'Not configured yet';
+
+  const entries = await dbGetAll();
+  const uploaded = entries.filter(e => e.uploaded).length;
+  document.getElementById('settingCount').textContent = `${entries.length} entries (${uploaded} uploaded)`;
+
+  if (navigator.storage && navigator.storage.estimate) {
+    const est = await navigator.storage.estimate();
+    const usedMB = (est.usage / 1024 / 1024).toFixed(1);
+    const quotaMB = (est.quota / 1024 / 1024).toFixed(0);
+    document.getElementById('settingStorage').textContent = `${usedMB} MB used of ${quotaMB} MB`;
+  }
+}
+
+// ---- Utilities ----
+function escapeHtml(str) {
+  if (!str) return '';
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+</script>
+</body>
+</html>
