@@ -297,6 +297,11 @@ body {
           <div class="label">File</div>
           <div class="desc">Any other file</div>
         </div>
+        <div class="capture-card" onclick="startCapture('text')" style="grid-column: 1 / -1;">
+          <div class="icon">&#9997;&#65039;</div>
+          <div class="label">Just write</div>
+          <div class="desc">A thought, reflection, or story — no photo needed</div>
+        </div>
       </div>
     </div>
   </div>
@@ -341,10 +346,10 @@ body {
           class="caption-area"
           id="captionInput"
           placeholder="Write your caption here..."
-          maxlength="1000"
+          maxlength="2000"
           oninput="updateCharCount()"
         ></textarea>
-        <div class="char-count"><span id="charCount">0</span> / 1000</div>
+        <div class="char-count"><span id="charCount">0</span> / 2000</div>
       </div>
       <button class="btn btn-primary btn-full btn-lg" id="sendBtn" onclick="sendEntry()">
         Send &#10148;
@@ -556,6 +561,10 @@ function startCapture(mode) {
   else if (mode === 'gallery') document.getElementById('galleryInput').click();
   else if (mode === 'voice') { showScreen('recorder'); resetRecorder(); }
   else if (mode === 'file') document.getElementById('fileInput').click();
+  else if (mode === 'text') {
+    currentCapture = { type: 'text', blob: null, filename: null, mimeType: 'text/plain' };
+    showCaptionScreen();
+  }
 }
 
 async function openCamera() {
@@ -643,7 +652,7 @@ async function toggleRecording() {
     document.getElementById('recHint').textContent = 'Tap to stop';
     recStartTime = Date.now();
     recInterval = setInterval(() => {
-      const elapsed = Math.floor((Date.now() - recStartTime) / 1000);
+      const elapsed = Math.floor((Date.now() - recStartTime) / 2000);
       document.getElementById('recTimer').textContent =
         `${Math.floor(elapsed / 60)}:${(elapsed % 60).toString().padStart(2, '0')}`;
     }, 200);
@@ -675,6 +684,8 @@ function showCaptionScreen() {
     audio.src = URL.createObjectURL(currentCapture.blob);
     audio.controls = true;
     preview.appendChild(audio);
+  } else if (currentCapture.type === 'text') {
+    preview.innerHTML = '';
   } else {
     preview.innerHTML = `<div style="padding:20px; background:var(--surface); border-radius:var(--radius-sm);
       border:1px solid var(--border); display:flex; align-items:center; gap:12px;">
@@ -686,6 +697,17 @@ function showCaptionScreen() {
   document.getElementById('captionInput').value = '';
   document.getElementById('charCount').textContent = '0';
   document.getElementById('sendBtn').disabled = false;
+
+  const promptLabel = document.querySelector('.prompt-label');
+  const promptHint = document.querySelector('.prompt-hint');
+  if (currentCapture.type === 'text') {
+    promptLabel.textContent = 'What\'s on your mind?';
+    promptHint.textContent = 'Write about a moment with AI today — what happened, what you thought, how it felt.';
+  } else {
+    promptLabel.textContent = 'What\'s happening here?';
+    promptHint.textContent = 'Describe this moment — what were you doing with AI? What did you think or feel?';
+  }
+
   setTimeout(() => document.getElementById('captionInput').focus(), 300);
 }
 
@@ -820,7 +842,7 @@ function buildFilename(caption, mimeType, originalFilename) {
   const ext = {
     'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp',
     'audio/webm': 'webm', 'audio/mp4': 'm4a', 'audio/mpeg': 'mp3',
-    'video/mp4': 'mp4', 'video/webm': 'webm',
+    'video/mp4': 'mp4', 'video/webm': 'webm', 'text/plain': 'txt',
   }[mimeType] || (originalFilename && originalFilename.includes('.') ?
     originalFilename.split('.').pop() : 'bin');
   return `${dateStr}_${timeStr}_${slug}.${ext}`;
@@ -847,14 +869,20 @@ async function sendEntry() {
   try {
     let mediaBlob = currentCapture.blob;
     let mimeType = currentCapture.mimeType;
+    let mediaBase64 = '';
+    let filename;
 
-    if (currentCapture.type === 'image') {
-      mediaBlob = await processImage(currentCapture.blob, caption, 1280, 0.80);
-      mimeType = 'image/jpeg';
+    if (currentCapture.type === 'text') {
+      mediaBase64 = '';
+      filename = buildFilename(caption, 'text/plain', null);
+    } else {
+      if (currentCapture.type === 'image') {
+        mediaBlob = await processImage(currentCapture.blob, caption, 1280, 0.80);
+        mimeType = 'image/jpeg';
+      }
+      mediaBase64 = await blobToBase64(mediaBlob);
+      filename = buildFilename(caption, mimeType, currentCapture.filename);
     }
-
-    const mediaBase64 = await blobToBase64(mediaBlob);
-    const filename = buildFilename(caption, mimeType, currentCapture.filename);
 
     const payload = {
       studentId: currentStudent.id,
@@ -1045,7 +1073,7 @@ async function renderPortfolio() {
       mediaHtml = `<div class="entry-card-file"><span class="file-icon">&#128206;</span><span class="file-name">${escapeHtml(entry.filename)}</span></div>`;
     }
 
-    const typeLabel = { image: 'Photo', video: 'Video', audio: 'Voice', file: 'File' }[entry.type] || 'File';
+    const typeLabel = { image: 'Photo', video: 'Video', audio: 'Voice', file: 'File', text: 'Text' }[entry.type] || 'File';
 
     let statusBadge = '';
     let actionHtml = '';
