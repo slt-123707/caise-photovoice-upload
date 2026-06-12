@@ -631,8 +631,8 @@ function discardEntry() {
   }
 }
 
-// ---- Image compression ----
-function compressImage(blob, maxDim, quality) {
+// ---- Image processing ----
+function processImage(blob, caption, maxDim, quality) {
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
@@ -642,11 +642,56 @@ function compressImage(blob, maxDim, quality) {
         width = Math.round(width * scale);
         height = Math.round(height * scale);
       }
+
+      const fontSize = Math.max(14, Math.min(24, Math.floor(width / 28)));
+      const lineHeight = fontSize * 1.4;
+      const padding = 16;
+      const maxTextWidth = width - padding * 2;
+
+      // Measure caption lines
+      const measureCanvas = document.createElement('canvas');
+      const mCtx = measureCanvas.getContext('2d');
+      mCtx.font = `${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+
+      let lines = [];
+      if (caption) {
+        const words = caption.split(' ');
+        let currentLine = '';
+        for (const word of words) {
+          const test = currentLine ? currentLine + ' ' + word : word;
+          if (mCtx.measureText(test).width > maxTextWidth && currentLine) {
+            lines.push(currentLine);
+            currentLine = word;
+          } else {
+            currentLine = test;
+          }
+        }
+        if (currentLine) lines.push(currentLine);
+      }
+
+      const barHeight = caption ? Math.max(48, lines.length * lineHeight + padding * 2) : 0;
+
       const canvas = document.createElement('canvas');
       canvas.width = width;
-      canvas.height = height;
+      canvas.height = height + barHeight;
       const ctx = canvas.getContext('2d');
+
       ctx.drawImage(img, 0, 0, width, height);
+
+      if (caption && lines.length) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+        ctx.fillRect(0, height, width, barHeight);
+
+        ctx.fillStyle = 'white';
+        ctx.font = `${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+        ctx.textBaseline = 'top';
+
+        const textStartY = height + padding;
+        lines.forEach((line, i) => {
+          ctx.fillText(line, padding, textStartY + i * lineHeight);
+        });
+      }
+
       canvas.toBlob((result) => {
         URL.revokeObjectURL(img.src);
         resolve(result);
@@ -734,7 +779,7 @@ async function sendEntry() {
     let mimeType = currentCapture.mimeType;
 
     if (currentCapture.type === 'image') {
-      mediaBlob = await compressImage(currentCapture.blob, 1920, 0.85);
+      mediaBlob = await processImage(currentCapture.blob, caption, 1920, 0.85);
       mimeType = 'image/jpeg';
     }
 
@@ -823,7 +868,7 @@ async function retryEntry(id) {
       let mimeType = entry.mimeType;
 
       if (entry.type === 'image') {
-        mediaBlob = await compressImage(mediaBlob, 1920, 0.85);
+        mediaBlob = await processImage(mediaBlob, entry.caption, 1920, 0.85);
         mimeType = 'image/jpeg';
       }
 
