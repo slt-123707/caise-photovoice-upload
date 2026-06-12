@@ -560,10 +560,18 @@ function startCapture(mode) {
 async function openCamera() {
   showScreen('camera');
   try {
-    cameraStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: facingMode, width: { ideal: 1920 }, height: { ideal: 1440 } },
-      audio: false,
-    });
+    // Try exact facing mode first, fall back to any camera
+    try {
+      cameraStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { exact: facingMode }, width: { ideal: 1920 }, height: { ideal: 1440 } },
+        audio: false,
+      });
+    } catch {
+      cameraStream = await navigator.mediaDevices.getUserMedia({
+        video: { width: { ideal: 1920 }, height: { ideal: 1440 } },
+        audio: false,
+      });
+    }
     document.getElementById('cameraPreview').srcObject = cameraStream;
   } catch (err) {
     closeCamera();
