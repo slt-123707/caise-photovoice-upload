@@ -643,9 +643,9 @@ function processImage(blob, caption, maxDim, quality) {
         height = Math.round(height * scale);
       }
 
-      const fontSize = Math.max(14, Math.min(24, Math.floor(width / 28)));
-      const lineHeight = fontSize * 1.4;
-      const padding = 16;
+      const fontSize = Math.max(20, Math.min(56, Math.floor(width / 35)));
+      const lineHeight = fontSize * 1.5;
+      const padding = Math.round(fontSize * 0.8);
       const maxTextWidth = width - padding * 2;
 
       // Measure caption lines
