@@ -311,7 +311,7 @@ body {
         <button id="shutterBtn" onclick="takePhoto()"
           style="width:68px; height:68px; border-radius:50%; border:4px solid white; background:rgba(255,255,255,0.3); cursor:pointer; -webkit-tap-highlight-color:transparent;">
         </button>
-        <button onclick="flipCamera()" class="btn" style="background:rgba(255,255,255,0.2); color:white; padding:10px 20px; font-size:20px;">&#128260;</button>
+        <button onclick="flipCamera()" class="btn" style="background:rgba(255,255,255,0.2); color:white; padding:10px 20px; font-size:14px; font-weight:600;">Flip</button>
       </div>
     </div>
   </div>
@@ -848,7 +848,7 @@ async function sendEntry() {
     let mimeType = currentCapture.mimeType;
 
     if (currentCapture.type === 'image') {
-      mediaBlob = await processImage(currentCapture.blob, caption, 1920, 0.85);
+      mediaBlob = await processImage(currentCapture.blob, caption, 1280, 0.80);
       mimeType = 'image/jpeg';
     }
 
@@ -937,7 +937,7 @@ async function retryEntry(id) {
       let mimeType = entry.mimeType;
 
       if (entry.type === 'image') {
-        mediaBlob = await processImage(mediaBlob, entry.caption, 1920, 0.85);
+        mediaBlob = await processImage(mediaBlob, entry.caption, 1280, 0.80);
         mimeType = 'image/jpeg';
       }
 
