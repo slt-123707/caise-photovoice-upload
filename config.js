@@ -9,7 +9,7 @@
 
 const CONFIG = {
   // Paste your Power Automate webhook URL here
-  webhookUrl: "https://prod-41.uksouth.logic.azure.com:443/workflows/460043e77b8c4419a7c06cded6368662/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=WuytAhVPkmMdk7LK7NxEtQAAE3LGuxpE3ZAdQxhrVxo",
+  webhookUrl: "https://prod-41.uksouth.logic.azure.com:443/workflows/460043e77b8c4419a7c06cded6368662/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=OVvd9QJZCU9GXHU--sru3eBGEk9Nvb0OQHl-aVWLAdY",
 
   // Study metadata
   title: "CAISE",
