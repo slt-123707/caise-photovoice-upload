@@ -391,7 +391,7 @@ body {
         <h2>Link not recognised</h2>
         <p>This app needs a personal link from your researcher. It should look like:<br><br>
         <code style="background:#EEF2FF; padding:4px 8px; border-radius:4px; font-size:13px;">
-          diary.projectcaise.co.uk/?s=01
+          diary.projectcaise.co.uk/?s=YOUR_TOKEN
         </code><br><br>
         Check the link you were given, or ask your researcher for help.</p>
       </div>
@@ -445,17 +445,18 @@ let db = null;
 // ---- Init ----
 window.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(window.location.search);
-  const studentId = params.get('s');
+  const token = params.get('s');
 
-  if (!studentId || !CONFIG.students[studentId]) {
+  if (!token || !CONFIG.students[token]) {
     document.querySelector('.screen.active')?.classList.remove('active');
     document.getElementById('screen-error').classList.add('active');
     document.getElementById('bottomNav').classList.add('hidden');
     return;
   }
 
-  currentStudent = { id: studentId, ...CONFIG.students[studentId] };
-  DB_NAME = `caise-diary-v2-s${studentId}`;
+  const studentData = CONFIG.students[token];
+  currentStudent = { id: studentData.id, name: studentData.name };
+  DB_NAME = `caise-diary-v2-s${studentData.id}`;
   document.getElementById('headerSubtitle').textContent =
     CONFIG.subtitle + (currentStudent.name ? ` — ${currentStudent.name}` : '');
 

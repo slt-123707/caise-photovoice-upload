@@ -5,7 +5,7 @@
 // 3. Update student names if needed
 // 4. Push to GitHub — the app auto-deploys
 //
-// Each student accesses the app via: https://diary.projectcaise.co.uk/?s=01
+// Each student accesses the app via: https://diary.projectcaise.co.uk/?s=TOKEN
 
 const CONFIG = {
   // Paste your Power Automate webhook URL here
@@ -15,29 +15,30 @@ const CONFIG = {
   title: "CAISE",
   subtitle: "My AI Diary",
 
-  // Student list — only the name is needed now (no OneDrive links)
+  // Student list — keyed by opaque token (each student gets a unique URL)
+  // URL format: https://diary.projectcaise.co.uk/?s=TOKEN
   students: {
-    "01": { name: "Student 01" },
-    "02": { name: "Student 02" },
-    "03": { name: "Student 03" },
-    "04": { name: "Student 04" },
-    "05": { name: "Student 05" },
-    "06": { name: "Student 06" },
-    "07": { name: "Student 07" },
-    "08": { name: "Student 08" },
-    "09": { name: "Student 09" },
-    "10": { name: "Student 10" },
-    "11": { name: "Student 11" },
-    "12": { name: "Student 12" },
-    "13": { name: "Student 13" },
-    "14": { name: "Student 14" },
-    "15": { name: "Student 15" },
-    "16": { name: "Student 16" },
-    "17": { name: "Student 17" },
-    "18": { name: "Student 18" },
-    "19": { name: "Student 19" },
-    "20": { name: "Student 20" },
-    "21": { name: "Student 21" },
-    "22": { name: "Student 22" },
+    "5bde328a": { id: "01", name: "Student 01" },
+    "604ad3b9": { id: "02", name: "Student 02" },
+    "43c1069d": { id: "03", name: "Student 03" },
+    "e9758ad1": { id: "04", name: "Student 04" },
+    "21de85f0": { id: "05", name: "Student 05" },
+    "92b8f361": { id: "06", name: "Student 06" },
+    "90436d8e": { id: "07", name: "Student 07" },
+    "5a9df34e": { id: "08", name: "Student 08" },
+    "786b3954": { id: "09", name: "Student 09" },
+    "39c0b7af": { id: "10", name: "Student 10" },
+    "8cd0b6a5": { id: "11", name: "Student 11" },
+    "10b78cda": { id: "12", name: "Student 12" },
+    "05d8963b": { id: "13", name: "Student 13" },
+    "1e645bf7": { id: "14", name: "Student 14" },
+    "d0b928ae": { id: "15", name: "Student 15" },
+    "e950d836": { id: "16", name: "Student 16" },
+    "e0a28694": { id: "17", name: "Student 17" },
+    "8f42a596": { id: "18", name: "Student 18" },
+    "30a6925f": { id: "19", name: "Student 19" },
+    "eb2a46d7": { id: "20", name: "Student 20" },
+    "fb60c1ea": { id: "21", name: "Student 21" },
+    "70ce6a98": { id: "22", name: "Student 22" },
   },
 };
