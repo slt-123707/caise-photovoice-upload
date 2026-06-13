@@ -41,5 +41,6 @@ const CONFIG = {
     "4c7ca196a8011e7801d467a7f57f6b7d52be7f633c9eb5f726b91d70db2946d8": { id: "20", name: "Student 20" },
     "d4366706074c8669088a9e256b82d3ffb8055beeb2022fbb5a7f9ed86d1918dc": { id: "21", name: "Student 21" },
     "16b247085c611bb744848f087fd7d64171db5d7a78abd7fcbb79acbf96519030": { id: "22", name: "Student 22" },
+    "34aa6fe94bcdb2e1ef8113d7ac41351c06acdc9bc803c45ca459dfd370cffc77": { id: "TEST", name: "Security Test" },
   },
 };
