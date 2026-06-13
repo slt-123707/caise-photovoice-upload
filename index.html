@@ -735,7 +735,7 @@ function discardEntry() {
 
 // ---- Image processing ----
 function processImage(blob, caption, maxDim, quality) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
       let { width, height } = img;
@@ -799,9 +799,9 @@ function processImage(blob, caption, maxDim, quality) {
         resolve(result);
       }, 'image/jpeg', quality);
     };
-    img.onerror = () => {
+        img.onerror = () => {
       URL.revokeObjectURL(img.src);
-      resolve(blob);
+      reject(new Error('IMAGE_DECODE_FAILED'));
     };
     img.src = URL.createObjectURL(blob);
   });
