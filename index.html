@@ -737,6 +737,10 @@ function discardEntry() {
 function processImage(blob, caption, maxDim, quality) {
   return new Promise((resolve, reject) => {
     const img = new Image();
+    const watchdog = setTimeout(() => {
+      URL.revokeObjectURL(img.src);
+      reject(new Error('IMAGE_PROCESS_TIMEOUT'));
+    }, 20000);
     img.onload = () => {
       let { width, height } = img;
       if (width > maxDim || height > maxDim) {
@@ -795,11 +799,14 @@ function processImage(blob, caption, maxDim, quality) {
       }
 
       canvas.toBlob((result) => {
+        clearTimeout(watchdog);
         URL.revokeObjectURL(img.src);
+        if (!result) { reject(new Error('IMAGE_ENCODE_FAILED')); return; }
         resolve(result);
       }, 'image/jpeg', quality);
     };
-        img.onerror = () => {
+    img.onerror = () => {
+      clearTimeout(watchdog);
       URL.revokeObjectURL(img.src);
       reject(new Error('IMAGE_DECODE_FAILED'));
     };
@@ -925,7 +932,10 @@ async function sendEntry() {
     console.error('Send failed:', err);
     await saveLocally(caption, 'failed');
     hideSendingOverlay();
-    alert('Couldn\'t send right now — your entry has been saved locally. You can retry from your diary.');
+    const imgErr = err && /IMAGE_(DECODE|ENCODE|PROCESS)/.test(err.message || '');
+    alert(imgErr
+      ? "Couldn't process that photo — it may be too large or in a format this browser can't read. Try uploading a screenshot of it instead."
+      : 'Couldn\'t send right now — your entry has been saved locally. You can retry from your diary.');
     showScreen('portfolio');
   }
 
