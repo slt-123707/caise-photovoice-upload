@@ -431,7 +431,7 @@ body {
 <script src="config.js"></script>
 <script>
 // ---- State ----
-let currentStudent = null;
+let currentToken = null;
 let currentCapture = null;
 let mediaRecorder = null;
 let audioChunks = [];
@@ -442,31 +442,24 @@ let DB_NAME = 'caise-diary-v2';
 const DB_VERSION = 1;
 let db = null;
 
-// ---- Hash helper ----
-async function hashToken(token) {
-  const data = new TextEncoder().encode(token);
-  const buf = await crypto.subtle.digest('SHA-256', data);
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
 // ---- Init ----
+// The token is validated server-side: the Logic App resolves it to a student
+// folder. The client holds no student list and no hashes; an unknown token is
+// rejected on upload (403). We only check here that a token is present.
 window.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(window.location.search);
   const token = params.get('s');
-  const tokenHash = token ? await hashToken(token) : null;
 
-  if (!tokenHash || !CONFIG.students[tokenHash]) {
+  if (!token) {
     document.querySelector('.screen.active')?.classList.remove('active');
     document.getElementById('screen-error').classList.add('active');
     document.getElementById('bottomNav').classList.add('hidden');
     return;
   }
 
-  const studentData = CONFIG.students[tokenHash];
-  currentStudent = { id: studentData.id, name: studentData.name };
-  DB_NAME = `caise-diary-v2-s${studentData.id}`;
-  document.getElementById('headerSubtitle').textContent =
-    CONFIG.subtitle + (currentStudent.name ? ` — ${currentStudent.name}` : '');
+  currentToken = token;
+  DB_NAME = `caise-diary-v2-t${token}`;
+  document.getElementById('headerSubtitle').textContent = CONFIG.subtitle;
 
   await initDB();
   renderPortfolio();
@@ -923,8 +916,7 @@ async function sendEntry() {
     }
 
     const payload = {
-      studentId: currentStudent.id,
-      studentName: currentStudent.name,
+      token: currentToken,
       caption: caption,
       filename: filename,
       mediaBase64: mediaBase64,
@@ -973,7 +965,7 @@ async function saveLocally(caption, status, thumbnail, filename) {
     caption: caption,
     status: status,
     thumbnail: thumbnail,
-    studentId: currentStudent.id,
+    token: currentToken,
   };
 
   if (status === 'failed' || status === 'pending') {
@@ -1015,8 +1007,7 @@ async function retryEntry(id) {
       const filename = buildFilename(entry.caption, mimeType, entry.filename);
 
       const payload = {
-        studentId: currentStudent.id,
-        studentName: currentStudent.name,
+        token: currentToken,
         caption: entry.caption,
         filename: filename,
         mediaBase64: mediaBase64,
@@ -1178,8 +1169,8 @@ async function confirmClearData() {
 
 // ---- Settings ----
 async function updateSettings() {
-  if (!currentStudent) return;
-  document.getElementById('settingStudent').textContent = `${currentStudent.name} (ID: ${currentStudent.id})`;
+  if (!currentToken) return;
+  document.getElementById('settingStudent').textContent = 'Connected';
   const entries = await dbGetAll();
   const sent = entries.filter(e => e.status === 'sent').length;
   document.getElementById('settingCount').textContent =
