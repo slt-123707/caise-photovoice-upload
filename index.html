@@ -442,19 +442,27 @@ let DB_NAME = 'caise-diary-v2';
 const DB_VERSION = 1;
 let db = null;
 
+// ---- Hash helper ----
+async function hashToken(token) {
+  const data = new TextEncoder().encode(token);
+  const buf = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 // ---- Init ----
 window.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(window.location.search);
   const token = params.get('s');
+  const tokenHash = token ? await hashToken(token) : null;
 
-  if (!token || !CONFIG.students[token]) {
+  if (!tokenHash || !CONFIG.students[tokenHash]) {
     document.querySelector('.screen.active')?.classList.remove('active');
     document.getElementById('screen-error').classList.add('active');
     document.getElementById('bottomNav').classList.add('hidden');
     return;
   }
 
-  const studentData = CONFIG.students[token];
+  const studentData = CONFIG.students[tokenHash];
   currentStudent = { id: studentData.id, name: studentData.name };
   DB_NAME = `caise-diary-v2-s${studentData.id}`;
   document.getElementById('headerSubtitle').textContent =
