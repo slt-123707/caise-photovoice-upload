@@ -438,7 +438,7 @@ let audioChunks = [];
 let recInterval = null;
 let recStartTime = 0;
 
-const DB_NAME = 'caise-diary-v2';
+let DB_NAME = 'caise-diary-v2';
 const DB_VERSION = 1;
 let db = null;
 
@@ -455,6 +455,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 
   currentStudent = { id: studentId, ...CONFIG.students[studentId] };
+  DB_NAME = `caise-diary-v2-s${studentId}`;
   document.getElementById('headerSubtitle').textContent =
     CONFIG.subtitle + (currentStudent.name ? ` — ${currentStudent.name}` : '');
 
@@ -873,7 +874,7 @@ async function sendEntry() {
     let filename;
 
     if (currentCapture.type === 'text') {
-      mediaBase64 = '';
+      mediaBase64 = btoa(unescape(encodeURIComponent(caption)));
       filename = buildFilename(caption, 'text/plain', null);
     } else {
       if (currentCapture.type === 'image') {
