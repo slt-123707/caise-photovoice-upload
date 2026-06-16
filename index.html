@@ -2,63 +2,159 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#6C63FF">
+<meta name="theme-color" content="#0E8F6E">
 <link rel="manifest" href="manifest.json">
 <title>CAISE — My AI Diary</title>
+<script>
+/* Set the theme before first paint to avoid a flash. Uses the saved choice,
+   else the device's system preference. */
+(function () {
+  try {
+    var t = localStorage.getItem('caise-theme');
+    if (t !== 'light' && t !== 'dark') {
+      t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) {}
+})();
+</script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --purple: #6C63FF;
-  --purple-light: #8B83FF;
-  --purple-dark: #4A42CC;
-  --bg: #F5F4FF;
+  /* Brand (teal / jade) */
+  --brand: #0E8F6E;
+  --brand-strong: #0B7257;
+  --brand-light: #5DCAA5;
+  /* Darker teal for small text, links and icons so they meet WCAG AA contrast
+     on light surfaces (the lighter --brand is used for large fills like the header). */
+  --brand-accent: #0F6E56;
+  --gradient: linear-gradient(135deg, #18A57C 0%, #0E8F6E 55%, #0B7257 100%);
+
+  /* Surfaces & text */
+  --page-bg: linear-gradient(180deg, #F1FAF6 0%, #E3F4EC 100%);
   --surface: #FFFFFF;
-  --text: #1A1A2E;
-  --text-light: #6B7280;
-  --border: #E5E7EB;
+  --surface-hover: #F2FAF7;
+  --text: #14211C;
+  --text-light: #5C6B66;
+  --border: #E2E8E5;
+
+  /* Tints & utility */
+  --icon-tint: linear-gradient(135deg, #E1F5EE, #CFEDE2);
+  --brand-tint: #E1F5EE;
+  --overlay-bg: rgba(241, 250, 246, 0.95);
+
+  /* Semantic */
   --success: #10B981;
   --success-light: #D1FAE5;
   --warning: #F59E0B;
   --warning-light: #FEF3C7;
   --danger: #EF4444;
-  --radius: 16px;
-  --radius-sm: 10px;
-  --shadow: 0 2px 12px rgba(108, 99, 255, 0.08);
-  --shadow-lg: 0 8px 30px rgba(108, 99, 255, 0.12);
+  --danger-text: #C81E1E;
+
+  /* Warning callout */
+  --warn-bg: #FEF3C7;
+  --warn-border: #FDE68A;
+  --warn-text: #78350F;
+
+  --radius: 18px;
+  --radius-sm: 12px;
+
+  /* Shadows (teal-tinted) */
+  --shadow: 0 2px 12px rgba(14, 143, 110, 0.10);
+  --shadow-lg: 0 10px 34px rgba(14, 143, 110, 0.18);
+  --shadow-header: 0 6px 20px rgba(14, 143, 110, 0.28);
+  --shadow-btn: 0 6px 16px rgba(14, 143, 110, 0.30);
+  --shadow-panel: 0 0 80px rgba(14, 143, 110, 0.16);
+}
+
+:root[data-theme="dark"] {
+  --brand: #16A883;
+  --brand-strong: #0B7257;
+  --brand-light: #5DCAA5;
+  --brand-accent: #5DCAA5;
+  --gradient: linear-gradient(135deg, #16A883 0%, #0E8F6E 55%, #0A6B52 100%);
+
+  --page-bg: linear-gradient(180deg, #0F1714 0%, #0B120F 100%);
+  --surface: #18211D;
+  --surface-hover: #1F2A25;
+  --text: #E8EFEC;
+  --text-light: #9DB0A9;
+  --border: #2B3933;
+
+  --icon-tint: linear-gradient(135deg, #15352B, #0F2A22);
+  --brand-tint: #15352B;
+  --overlay-bg: rgba(11, 18, 15, 0.95);
+
+  --danger-text: #F09595;
+
+  --warn-bg: #3A2E0A;
+  --warn-border: #5A4711;
+  --warn-text: #FCD34D;
+
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.40);
+  --shadow-lg: 0 10px 34px rgba(0, 0, 0, 0.50);
+  --shadow-header: 0 6px 20px rgba(0, 0, 0, 0.45);
+  --shadow-btn: 0 6px 16px rgba(0, 0, 0, 0.50);
+  --shadow-panel: 0 0 80px rgba(0, 0, 0, 0.55);
 }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: var(--bg);
+  background: var(--page-bg);
+  background-attachment: fixed;
   color: var(--text);
   min-height: 100dvh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
 
-.app { max-width: 500px; margin: 0 auto; min-height: 100dvh; display: flex; flex-direction: column; }
+.app { max-width: 500px; margin: 0 auto; min-height: 100dvh; display: flex; flex-direction: column; position: relative; }
+
+/* On larger screens (e.g. Surface in landscape) the app is no longer the whole
+   screen, so frame it as an intentional centered panel rather than a narrow
+   strip floating in empty space. */
+@media (min-width: 540px) {
+  .app {
+    max-width: 620px;
+    background: var(--surface);
+    box-shadow: var(--shadow-panel);
+  }
+  .content { padding: 24px; }
+}
 
 /* ---- Header ---- */
 .header {
-  background: var(--purple);
+  background: var(--gradient);
   color: white;
-  padding: 16px 20px;
+  padding: 18px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   position: sticky;
   top: 0;
   z-index: 100;
+  border-radius: 0 0 22px 22px;
+  box-shadow: var(--shadow-header);
 }
-.header h1 { font-size: 18px; font-weight: 700; }
-.header .subtitle { font-size: 12px; opacity: 0.8; }
+.header h1 { font-size: 19px; font-weight: 700; letter-spacing: 0.2px; }
+.header .subtitle { font-size: 12px; opacity: 0.85; margin-top: 1px; }
 .header-left { display: flex; flex-direction: column; }
+.header-info {
+  width: 38px; height: 38px; border-radius: 50%; border: none;
+  background: rgba(255, 255, 255, 0.18); color: white; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; font-weight: 700; line-height: 1; transition: background 0.2s;
+  -webkit-tap-highlight-color: transparent; flex-shrink: 0;
+}
+.header-info:hover, .header-info:active { background: rgba(255, 255, 255, 0.3); }
+.header-actions { display: flex; gap: 8px; align-items: center; }
 
 /* ---- Screens ---- */
+#main { flex: 1; display: flex; flex-direction: column; min-height: 0; }
 .screen { display: none; flex: 1; flex-direction: column; }
 .screen.active { display: flex; }
 .content { flex: 1; padding: 16px; overflow-y: auto; }
@@ -70,12 +166,27 @@ body {
   font-weight: 600; border: none; cursor: pointer; transition: all 0.2s;
   -webkit-tap-highlight-color: transparent;
 }
-.btn-primary { background: var(--purple); color: white; }
-.btn-primary:hover { background: var(--purple-dark); }
-.btn-primary:disabled { background: #B8B5D4; cursor: not-allowed; }
-.btn-secondary { background: var(--surface); color: var(--purple); border: 2px solid var(--purple); }
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: var(--gradient); color: white; box-shadow: var(--shadow-btn); }
+.btn-primary:hover { filter: brightness(1.05); }
+.btn-primary:disabled { background: #B8B5D4; box-shadow: none; cursor: not-allowed; }
+.btn-secondary { background: var(--surface); color: var(--brand-accent); border: 2px solid var(--brand-accent); }
 .btn-success { background: var(--success); color: white; }
-.btn-danger { background: white; color: var(--danger); border: 2px solid var(--danger); }
+.btn-danger { background: var(--surface); color: var(--danger-text); border: 2px solid var(--danger-text); }
+
+/* Visible keyboard focus for all interactive controls */
+.btn:focus-visible, .capture-card:focus-visible, .nav-item:focus-visible,
+.header-info:focus-visible, .rec-btn:focus-visible, #shutterBtn:focus-visible,
+a:focus-visible, .caption-area:focus-visible {
+  outline: 3px solid var(--brand-accent); outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important; animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
 .btn-full { width: 100%; }
 .btn-lg { padding: 18px 24px; font-size: 18px; border-radius: var(--radius); }
 
@@ -84,10 +195,18 @@ body {
 .capture-card {
   background: var(--surface); border: 2px solid var(--border); border-radius: var(--radius);
   padding: 24px 16px; text-align: center; cursor: pointer; transition: all 0.2s;
-  -webkit-tap-highlight-color: transparent;
+  box-shadow: var(--shadow); -webkit-tap-highlight-color: transparent;
+  width: 100%; font-family: inherit; display: block;
 }
-.capture-card:hover, .capture-card:active { border-color: var(--purple); background: #F5F3FF; }
-.capture-card .icon { font-size: 32px; margin-bottom: 8px; }
+.capture-card:hover, .capture-card:active {
+  border-color: var(--brand); background: var(--surface-hover);
+  transform: translateY(-2px); box-shadow: var(--shadow-lg);
+}
+.capture-card .icon {
+  font-size: 30px; margin: 0 auto 10px; width: 60px; height: 60px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--icon-tint);
+}
 .capture-card .label { font-size: 14px; font-weight: 600; color: var(--text); }
 .capture-card .desc { font-size: 11px; color: var(--text-light); margin-top: 4px; }
 
@@ -96,8 +215,9 @@ body {
   width: 100%; min-height: 120px; padding: 16px; border: 2px solid var(--border);
   border-radius: var(--radius-sm); font-size: 16px; font-family: inherit;
   resize: vertical; transition: border-color 0.2s; line-height: 1.5;
+  background: var(--surface); color: var(--text);
 }
-.caption-area:focus { outline: none; border-color: var(--purple); }
+.caption-area:focus { outline: none; border-color: var(--brand); }
 .caption-area::placeholder { color: #9CA3AF; }
 
 .preview-media {
@@ -113,7 +233,7 @@ body {
 }
 .rec-btn {
   width: 80px; height: 80px; border-radius: 50%; border: 4px solid var(--danger);
-  background: white; cursor: pointer; display: flex; align-items: center;
+  background: var(--surface); cursor: pointer; display: flex; align-items: center;
   justify-content: center; transition: all 0.2s;
   -webkit-tap-highlight-color: transparent;
 }
@@ -131,7 +251,7 @@ body {
 
 /* ---- Sending overlay ---- */
 .sending-overlay {
-  position: fixed; inset: 0; background: rgba(245, 244, 255, 0.95);
+  position: fixed; inset: 0; background: var(--overlay-bg);
   display: none; flex-direction: column; align-items: center; justify-content: center;
   z-index: 300; gap: 20px;
 }
@@ -139,7 +259,7 @@ body {
 
 .spinner {
   width: 48px; height: 48px; border: 4px solid var(--border);
-  border-top-color: var(--purple); border-radius: 50%;
+  border-top-color: var(--brand); border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -161,11 +281,15 @@ body {
 
 /* ---- Portfolio ---- */
 .empty-state {
-  text-align: center; padding: 60px 20px; color: var(--text-light);
+  text-align: center; padding: 56px 24px; color: var(--text-light);
 }
-.empty-state .icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
-.empty-state h2 { font-size: 18px; margin-bottom: 8px; color: var(--text); }
-.empty-state p { font-size: 14px; line-height: 1.5; }
+.empty-state .icon {
+  font-size: 44px; margin: 0 auto 18px; width: 96px; height: 96px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--icon-tint); box-shadow: var(--shadow);
+}
+.empty-state h2 { font-size: 19px; margin-bottom: 8px; color: var(--text); }
+.empty-state p { font-size: 14px; line-height: 1.6; max-width: 300px; margin: 0 auto; }
 
 .entry-card {
   background: var(--surface); border-radius: var(--radius); overflow: hidden;
@@ -193,7 +317,7 @@ body {
 .badge-sent { background: var(--success-light); color: #065F46; }
 .badge-pending { background: var(--warning-light); color: #92400E; }
 .badge-failed { background: #FEE2E2; color: #991B1B; }
-.badge-type { background: #EEF2FF; color: var(--purple); }
+.badge-type { background: var(--brand-tint); color: var(--brand-accent); }
 
 .entry-card-actions { display: flex; gap: 8px; padding: 0 16px 16px; }
 .entry-card-actions .btn { flex: 1; padding: 10px; font-size: 13px; }
@@ -221,7 +345,7 @@ body {
   border: none; background: none; -webkit-tap-highlight-color: transparent;
   transition: color 0.2s; position: relative;
 }
-.nav-item.active { color: var(--purple); }
+.nav-item.active { color: var(--brand-accent); }
 .nav-item .nav-icon { font-size: 22px; }
 .nav-badge {
   position: absolute; top: 4px; right: calc(50% - 18px); background: var(--warning);
@@ -247,23 +371,87 @@ body {
 
 .prompt-label { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
 .prompt-hint { font-size: 13px; color: var(--text-light); margin-bottom: 12px; line-height: 1.4; }
+
+/* ---- About / Info ---- */
+.about-hero {
+  background: var(--gradient); color: white; border-radius: var(--radius);
+  padding: 24px 20px; text-align: center; box-shadow: var(--shadow-lg);
+}
+.about-hero .hero-emoji { font-size: 40px; }
+.about-hero h2 { font-size: 21px; font-weight: 700; margin-top: 8px; }
+.about-hero p { font-size: 14px; line-height: 1.5; opacity: 0.92; margin-top: 6px; }
+
+.about-card {
+  background: var(--surface); border-radius: var(--radius); padding: 20px;
+  box-shadow: var(--shadow); border: 1px solid var(--border);
+}
+.about-card h3 {
+  font-size: 16px; font-weight: 700; color: var(--text);
+  display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+}
+.about-card h3 .emoji {
+  width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 18px;
+  background: var(--icon-tint);
+}
+.about-card p { font-size: 14px; line-height: 1.6; color: var(--text); }
+.about-card p + p { margin-top: 10px; }
+
+.about-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.about-list li { font-size: 14px; line-height: 1.55; color: var(--text); display: flex; gap: 10px; }
+.about-list li .tick { color: var(--success); font-weight: 700; flex-shrink: 0; }
+
+.about-steps { list-style: none; counter-reset: step; display: flex; flex-direction: column; gap: 14px; }
+.about-steps li {
+  font-size: 14px; line-height: 1.5; color: var(--text);
+  display: flex; gap: 12px; align-items: flex-start;
+}
+.about-steps li::before {
+  counter-increment: step; content: counter(step);
+  width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+  background: var(--gradient); color: white; font-weight: 700; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+}
+.about-link {
+  display: inline; color: var(--brand-accent); font-weight: 600; text-decoration: underline;
+}
+.about-link:hover { text-decoration: none; }
+.about-link-block {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 12px;
+  color: var(--brand); font-weight: 600; font-size: 14px; text-decoration: none;
+}
+.about-link-block:hover { text-decoration: underline; }
+
+.about-warning {
+  background: var(--warn-bg); border: 1px solid var(--warn-border); border-radius: var(--radius);
+  padding: 18px; display: flex; gap: 12px; align-items: flex-start;
+}
+.about-warning .warn-icon { font-size: 22px; line-height: 1.3; flex-shrink: 0; }
+.about-warning p { font-size: 14px; line-height: 1.6; color: var(--warn-text); }
+.about-warning strong { color: var(--warn-text); }
 </style>
 </head>
 <body>
 <div class="app" id="app">
 
-  <div class="header">
+  <header class="header">
     <div class="header-left">
       <h1 id="headerTitle">CAISE</h1>
       <span class="subtitle" id="headerSubtitle">My AI Diary</span>
     </div>
-  </div>
+    <div class="header-actions">
+      <button class="header-info" id="themeBtn" onclick="toggleTheme()" aria-label="Switch theme" title="Switch theme">&#127769;</button>
+      <button class="header-info" id="infoBtn" onclick="showScreen('about')" aria-label="About this app" title="About this app">&#9432;</button>
+    </div>
+  </header>
+
+  <main id="main">
 
   <!-- Screen: Portfolio (home) -->
   <div class="screen active" id="screen-portfolio">
     <div class="content" id="portfolioContent">
       <div class="empty-state" id="emptyState">
-        <div class="icon">&#128247;</div>
+        <div class="icon" aria-hidden="true">&#128247;</div>
         <h2>Your diary is empty</h2>
         <p>Tap <strong>New</strong> below to capture your first moment with AI.</p>
       </div>
@@ -277,31 +465,31 @@ body {
     <div class="content">
       <h2 class="mb-16">What do you want to capture?</h2>
       <div class="capture-grid">
-        <div class="capture-card" onclick="startCapture('camera')">
-          <div class="icon">&#128248;</div>
+        <button type="button" class="capture-card" onclick="startCapture('camera')">
+          <div class="icon" aria-hidden="true">&#128248;</div>
           <div class="label">Photo</div>
           <div class="desc">Take a picture</div>
-        </div>
-        <div class="capture-card" onclick="startCapture('gallery')">
-          <div class="icon">&#128444;&#65039;</div>
+        </button>
+        <button type="button" class="capture-card" onclick="startCapture('gallery')">
+          <div class="icon" aria-hidden="true">&#128444;&#65039;</div>
           <div class="label">Gallery</div>
           <div class="desc">Pick an image or screenshot</div>
-        </div>
-        <div class="capture-card" onclick="startCapture('voice')">
-          <div class="icon">&#127908;</div>
+        </button>
+        <button type="button" class="capture-card" onclick="startCapture('voice')">
+          <div class="icon" aria-hidden="true">&#127908;</div>
           <div class="label">Voice note</div>
           <div class="desc">Record yourself</div>
-        </div>
-        <div class="capture-card" onclick="startCapture('file')">
-          <div class="icon">&#128206;</div>
+        </button>
+        <button type="button" class="capture-card" onclick="startCapture('file')">
+          <div class="icon" aria-hidden="true">&#128206;</div>
           <div class="label">File</div>
           <div class="desc">Any other file</div>
-        </div>
-        <div class="capture-card" onclick="startCapture('text')" style="grid-column: 1 / -1;">
-          <div class="icon">&#9997;&#65039;</div>
+        </button>
+        <button type="button" class="capture-card" onclick="startCapture('text')" style="grid-column: 1 / -1;">
+          <div class="icon" aria-hidden="true">&#9997;&#65039;</div>
           <div class="label">Just write</div>
           <div class="desc">A thought, reflection, or story — no photo needed</div>
-        </div>
+        </button>
       </div>
     </div>
   </div>
@@ -313,7 +501,7 @@ body {
         style="width:100%; height:calc(100dvh - 120px); object-fit:cover; background:#000;"></video>
       <div style="position:absolute; bottom:0; left:0; right:0; padding:20px; display:flex; justify-content:center; align-items:center; gap:20px; background:linear-gradient(transparent, rgba(0,0,0,0.6));">
         <button class="btn" onclick="closeCamera()" style="background:rgba(255,255,255,0.2); border:2px solid white; color:white; padding:10px 20px; font-size:14px; font-weight:600;">Cancel</button>
-        <button id="shutterBtn" onclick="takePhoto()"
+        <button id="shutterBtn" onclick="takePhoto()" aria-label="Take photo"
           style="width:68px; height:68px; border-radius:50%; border:4px solid white; background:rgba(255,255,255,0.3); cursor:pointer; -webkit-tap-highlight-color:transparent;">
         </button>
         <button onclick="flipCamera()" class="btn" style="background:rgba(255,255,255,0.2); color:white; padding:10px 20px; font-size:14px; font-weight:600;">Flip</button>
@@ -327,8 +515,8 @@ body {
       <div class="recorder">
         <p class="text-sm text-light">Tap to start recording</p>
         <div class="rec-timer" id="recTimer">0:00</div>
-        <button class="rec-btn" id="recBtn" onclick="toggleRecording()">
-          <div class="rec-dot"></div>
+        <button class="rec-btn" id="recBtn" onclick="toggleRecording()" aria-label="Start or stop recording">
+          <div class="rec-dot" aria-hidden="true"></div>
         </button>
         <p class="text-sm text-light" id="recHint">Tap the circle to start</p>
       </div>
@@ -340,13 +528,14 @@ body {
     <div class="content gap-16">
       <div id="mediaPreview"></div>
       <div>
-        <div class="prompt-label">What's happening here?</div>
-        <div class="prompt-hint">Describe this moment — what were you doing with AI? What did you think or feel?</div>
+        <label class="prompt-label" id="captionPromptLabel" for="captionInput">What's happening here?</label>
+        <div class="prompt-hint" id="captionPromptHint">Describe this moment — what were you doing with AI? What did you think or feel?</div>
         <textarea
           class="caption-area"
           id="captionInput"
           placeholder="Write your caption here..."
           maxlength="2000"
+          aria-describedby="captionPromptHint"
           oninput="updateCharCount()"
         ></textarea>
         <div class="char-count"><span id="charCount">0</span> / 2000</div>
@@ -383,14 +572,77 @@ body {
     </div>
   </div>
 
+  <!-- Screen: About / Info -->
+  <div class="screen" id="screen-about">
+    <div class="content gap-16">
+
+      <div class="about-hero">
+        <div class="hero-emoji" aria-hidden="true">&#128247;</div>
+        <h2>Your AI Diary</h2>
+        <p>Here's where to capture your evidence for our research on how you use AI.</p>
+      </div>
+
+      <!-- What is photovoice -->
+      <div class="about-card">
+        <h3><span class="emoji" aria-hidden="true">&#129488;</span> What is this?</h3>
+        <p>This is a <strong>photovoice</strong> diary. Photovoice is a way of taking part in research using
+        photos, pictures, documents, voice notes and your own words — instead of just answering survey questions
+        or interviews.</p>
+        <p>You capture things that matter to you, add a caption that says what they mean and send them over to the
+        research team. At the start of the next term, you'll sit with the research team and check your evidence —
+        and then we'll collect all the good pieces together to do an analysis as a group.</p>
+        <!-- TODO: replace href="#" with the real example URL when ready. -->
+        <p>You can read researcher Sarah's example <a class="about-link" href="#" target="_blank" rel="noopener">here</a>.</p>
+      </div>
+
+      <!-- What happens when you use it (informal privacy) -->
+      <div class="about-card">
+        <h3><span class="emoji" aria-hidden="true">&#128274;</span> What happens to what I share?</h3>
+        <ul class="about-list">
+          <li><span class="tick" aria-hidden="true">&#10003;</span><span>Everything you send goes straight to a secure folder that only Sarah, the researcher, can see.</span></li>
+          <li><span class="tick" aria-hidden="true">&#10003;</span><span>No other students, and nobody on the internet, can see your entries.</span></li>
+          <li><span class="tick" aria-hidden="true">&#10003;</span><span>Photos have details like location and the exact time automatically removed before they're sent, so a photo can't give away where you were.</span></li>
+          <li><span class="tick" aria-hidden="true">&#10003;</span><span>The app never asks for your name and there's no password. Your personal link is what tells the researcher an entry is yours.</span></li>
+          <li><span class="tick" aria-hidden="true">&#10003;</span><span>Photos and voice notes you make in the app aren't saved to the device's camera roll or Files — the only copy on this device is inside your Diary here.</span></li>
+          <li><span class="tick" aria-hidden="true">&#10003;</span><span>The <strong>Diary</strong> on this device is just your own copy. Clearing it doesn't delete anything you've already sent. But if you clear your cookies, it will disappear.</span></li>
+          <li><span class="tick" aria-hidden="true">&#10003;</span><span>You're in charge: you choose what to capture, what to write. Regret sending something? <a class="about-link" href="mailto:s.turner@ucl.ac.uk">Email the researcher</a>.</span></li>
+        </ul>
+      </div>
+
+      <!-- School device / safeguarding warning -->
+      <div class="about-warning">
+        <span class="warn-icon" aria-hidden="true">&#9888;&#65039;</span>
+        <p><strong>Remember:</strong> you're meant to use this on your <strong>school device</strong>, which means
+        everything you send is filtered through the school's safeguarding filters. This protects you, and it
+        protects the research team. Everything you send must be in line with the school's acceptable use policy.</p>
+      </div>
+
+      <!-- How to use -->
+      <div class="about-card">
+        <h3><span class="emoji" aria-hidden="true">&#128161;</span> How do I use it?</h3>
+        <ol class="about-steps">
+          <li><span>Tap <strong>+ New</strong> at the bottom of the screen.</span></li>
+          <li><span>Choose how to share: take a photo, pick one from your gallery, record a voice note, add a file, or just write.</span></li>
+          <li><span>Add a caption — a sentence or two about what it is and why it matters. This is the most important part!</span></li>
+          <li><span>Tap <strong>Send</strong>. You'll see a green tick when it's safely delivered.</span></li>
+          <li><span>Your entries appear in <strong>Diary</strong>. If one didn't send (say you had no internet), it waits there so you can try again.</span></li>
+        </ol>
+      </div>
+
+      <button class="btn btn-primary btn-full" onclick="showScreen('portfolio')">Got it &#10003;</button>
+
+      <p class="text-sm text-light text-center">Questions? Contact Sarah at <a class="about-link" href="mailto:s.turner@ucl.ac.uk">s.turner@ucl.ac.uk</a>.</p>
+    </div>
+  </div>
+
   <!-- Screen: Error / no student -->
   <div class="screen" id="screen-error">
     <div class="content">
       <div class="empty-state">
-        <div class="icon">&#128275;</div>
+        <div class="icon" aria-hidden="true">&#128275;</div>
         <h2>Link not recognised</h2>
         <p>This app needs a personal link from your researcher. It should look like:<br><br>
-        <code style="background:#EEF2FF; padding:4px 8px; border-radius:4px; font-size:13px;">
+        <code style="background:var(--brand-tint); color:var(--text); padding:4px 8px; border-radius:4px; font-size:13px;">
           diary.projectcaise.co.uk/?s=YOUR_TOKEN
         </code><br><br>
         Check the link you were given, or ask your researcher for help.</p>
@@ -398,22 +650,24 @@ body {
     </div>
   </div>
 
+  </main>
+
   <!-- Bottom nav -->
-  <div class="bottom-nav" id="bottomNav">
+  <nav class="bottom-nav" id="bottomNav" aria-label="Main">
     <button class="nav-item active" onclick="showScreen('portfolio')" data-screen="portfolio">
-      <span class="nav-icon">&#128214;</span>
+      <span class="nav-icon" aria-hidden="true">&#128214;</span>
       Diary
     </button>
     <button class="nav-item" onclick="showScreen('new')" data-screen="new"
-      style="background:var(--purple); color:white; border-radius:0;">
-      <span class="nav-icon" style="font-size:28px;">+</span>
+      style="background:var(--brand-strong); color:white; border-radius:0;">
+      <span class="nav-icon" style="font-size:28px;" aria-hidden="true">+</span>
       New
     </button>
     <button class="nav-item" onclick="showScreen('settings')" data-screen="settings">
-      <span class="nav-icon">&#9881;&#65039;</span>
+      <span class="nav-icon" aria-hidden="true">&#9881;&#65039;</span>
       Settings
     </button>
-  </div>
+  </nav>
 </div>
 
 <!-- Sending overlay -->
@@ -442,11 +696,34 @@ let DB_NAME = 'caise-diary-v2';
 const DB_VERSION = 1;
 let db = null;
 
+// ---- Theme (light / dark) ----
+function syncThemeButton() {
+  const theme = document.documentElement.getAttribute('data-theme') || 'light';
+  const btn = document.getElementById('themeBtn');
+  if (btn) {
+    // Show the moon while light (tap to go dark), the sun while dark.
+    btn.innerHTML = theme === 'dark' ? '☀️' : '🌙';
+    btn.setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+    btn.setAttribute('title', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+  }
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', theme === 'dark' ? '#0B120F' : '#0E8F6E');
+}
+
+function toggleTheme() {
+  const next = (document.documentElement.getAttribute('data-theme') === 'dark') ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  try { localStorage.setItem('caise-theme', next); } catch (e) {}
+  syncThemeButton();
+}
+
 // ---- Init ----
 // The token is validated server-side: the Logic App resolves it to a student
 // folder. The client holds no student list and no hashes; an unknown token is
 // rejected on upload (403). We only check here that a token is present.
 window.addEventListener('DOMContentLoaded', async () => {
+  syncThemeButton();
+
   const params = new URLSearchParams(window.location.search);
   const token = params.get('s');
 
@@ -454,6 +731,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     document.querySelector('.screen.active')?.classList.remove('active');
     document.getElementById('screen-error').classList.add('active');
     document.getElementById('bottomNav').classList.add('hidden');
+    document.getElementById('infoBtn').classList.add('hidden');
     return;
   }
 
@@ -655,7 +933,7 @@ async function toggleRecording() {
     document.getElementById('recHint').textContent = 'Tap to stop';
     recStartTime = Date.now();
     recInterval = setInterval(() => {
-      const elapsed = Math.floor((Date.now() - recStartTime) / 2000);
+      const elapsed = Math.floor((Date.now() - recStartTime) / 1000);
       document.getElementById('recTimer').textContent =
         `${Math.floor(elapsed / 60)}:${(elapsed % 60).toString().padStart(2, '0')}`;
     }, 200);
