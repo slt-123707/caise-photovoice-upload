@@ -4,149 +4,343 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0E8F6E">
-<title>CAISE — Photovoice example</title>
+<title>How does generative AI appear in my life? — CAISE example</title>
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-:root {
-  --brand: #0E8F6E;
-  --brand-accent: #0F6E56;
-  --gradient: linear-gradient(135deg, #18A57C 0%, #0E8F6E 55%, #0B7257 100%);
-  --page-bg: linear-gradient(180deg, #F1FAF6 0%, #E3F4EC 100%);
-  --surface: #FFFFFF;
-  --text: #14211C;
-  --text-light: #5C6B66;
-  --border: #E2E8E5;
-  --icon-tint: linear-gradient(135deg, #E1F5EE, #CFEDE2);
-  --brand-tint: #E1F5EE;
-  --shadow: 0 2px 12px rgba(14, 143, 110, 0.10);
-  --shadow-lg: 0 10px 34px rgba(14, 143, 110, 0.18);
-  --radius: 18px;
-}
-
-@media (prefers-color-scheme: dark) {
   :root {
-    --brand: #16A883;
-    --brand-accent: #5DCAA5;
-    --gradient: linear-gradient(135deg, #16A883 0%, #0E8F6E 55%, #0A6B52 100%);
-    --page-bg: linear-gradient(180deg, #0F1714 0%, #0B120F 100%);
-    --surface: #18211D;
-    --text: #E8EFEC;
-    --text-light: #9DB0A9;
-    --border: #2B3933;
-    --icon-tint: linear-gradient(135deg, #15352B, #0F2A22);
-    --brand-tint: #15352B;
-    --shadow: 0 2px 12px rgba(0, 0, 0, 0.40);
-    --shadow-lg: 0 10px 34px rgba(0, 0, 0, 0.50);
+    --brand: #0E8F6E;
+    --brand-accent: #0F6E56;
+    --gradient: linear-gradient(135deg, #18A57C 0%, #0E8F6E 55%, #0B7257 100%);
+    --page-bg: linear-gradient(180deg, #F1FAF6 0%, #E3F4EC 100%);
+    --surface: #FFFFFF;
+    --text: #14211C;
+    --text-light: #5C6B66;
+    --border: #E2E8E5;
+    --shadow: 0 2px 12px rgba(14, 143, 110, 0.10);
+    --shadow-lg: 0 10px 34px rgba(14, 143, 110, 0.18);
+    --radius: 16px;
   }
-}
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: var(--page-bg); background-attachment: fixed;
-  color: var(--text); min-height: 100dvh; -webkit-font-smoothing: antialiased;
-}
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand: #16A883;
+      --brand-accent: #5DCAA5;
+      --gradient: linear-gradient(135deg, #16A883 0%, #0E8F6E 55%, #0A6B52 100%);
+      --page-bg: linear-gradient(180deg, #0F1714 0%, #0B120F 100%);
+      --surface: #18211D;
+      --text: #E8EFEC;
+      --text-light: #9DB0A9;
+      --border: #2B3933;
+      --shadow: 0 2px 12px rgba(0, 0, 0, 0.40);
+      --shadow-lg: 0 10px 34px rgba(0, 0, 0, 0.50);
+    }
+  }
 
-.wrap { max-width: 620px; margin: 0 auto; min-height: 100dvh; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-.header {
-  background: var(--gradient); color: white; padding: 18px 20px;
-  border-radius: 0 0 22px 22px; box-shadow: var(--shadow-lg);
-}
-.header h1 { font-size: 19px; font-weight: 700; }
-.header .subtitle { font-size: 12px; opacity: 0.85; margin-top: 1px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--page-bg); background-attachment: fixed;
+    color: var(--text); line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
 
-.content { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+  img { background: var(--border); display: block; width: 100%; }
 
-.hero {
-  background: var(--gradient); color: white; border-radius: var(--radius);
-  padding: 24px 20px; text-align: center; box-shadow: var(--shadow-lg);
-}
-.hero h2 { font-size: 21px; font-weight: 700; }
-.hero p { font-size: 14px; line-height: 1.5; opacity: 0.92; margin-top: 6px; }
+  /* Header */
+  header {
+    background: var(--gradient); color: #fff;
+    padding: 22px 0 26px; border-radius: 0 0 22px 22px; box-shadow: var(--shadow-lg);
+  }
+  .inner { max-width: 640px; margin: 0 auto; padding: 0 20px; }
+  .ucl-label {
+    font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase;
+    color: rgba(255,255,255,0.75); margin-bottom: 8px;
+  }
+  header h1 { font-size: 28px; font-weight: 800; line-height: 1.15; margin-bottom: 6px; }
+  .byline { font-size: 14px; color: rgba(255,255,255,0.85); }
 
-.note {
-  background: var(--brand-tint); color: var(--brand-accent); border-radius: var(--radius);
-  padding: 16px 18px; font-size: 14px; line-height: 1.55; font-weight: 600;
-}
+  /* Intro */
+  .intro-card {
+    margin-top: 8px;
+    background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 20px 22px;
+  }
+  .intro-card p { font-size: 16px; color: var(--text-light); }
+  .intro-card p + p { margin-top: 12px; }
+  .intro-card ul { margin: 12px 0 12px 22px; }
+  .intro-card li { font-size: 16px; color: var(--text-light); margin: 4px 0; }
 
-.card {
-  background: var(--surface); border-radius: var(--radius); overflow: hidden;
-  box-shadow: var(--shadow);
-}
-.card-photo {
-  width: 100%; aspect-ratio: 4 / 3; display: flex; align-items: center; justify-content: center;
-  background: var(--icon-tint); color: var(--brand-accent); font-size: 14px; font-weight: 600;
-}
-.card-file {
-  padding: 20px 18px 4px; display: flex; align-items: center; gap: 12px; color: var(--text-light);
-}
-.card-file .file-icon { font-size: 28px; }
-.card-body { padding: 18px; }
-.card-caption { font-size: 15px; line-height: 1.55; margin-bottom: 12px; }
-.card-meta {
-  font-size: 12px; color: var(--text-light); display: flex;
-  justify-content: space-between; align-items: center;
-}
-.badge {
-  display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;
-  background: var(--brand-tint); color: var(--brand-accent);
-}
+  /* Captures */
+  main { max-width: 640px; margin: 0 auto; padding: 8px 20px 56px; }
+  .capture { padding: 28px 0; border-bottom: 1px solid var(--border); }
+  .capture:last-of-type { border-bottom: none; }
+  .capture-label {
+    font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--brand-accent); font-weight: 700; margin-bottom: 6px;
+  }
+  .capture h2 { font-size: 22px; font-weight: 800; line-height: 1.2; margin-bottom: 16px; }
+  .capture-body p { font-size: 16px; color: var(--text-light); margin: 12px 0; }
 
-.foot { font-size: 13px; color: var(--text-light); text-align: center; line-height: 1.6; padding: 8px 0 24px; }
-.foot a { color: var(--brand-accent); font-weight: 600; }
+  /* Image blocks */
+  .img-single { margin: 16px 0; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); }
+  .img-caption {
+    background: var(--surface); color: var(--text-light); font-size: 13px; line-height: 1.45;
+    padding: 10px 14px; border-top: 1px solid var(--border);
+  }
+  .img-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+  .img-grid-2 .img-single { margin: 0; }
+  .img-sequence { display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
+
+  /* Dark block for terminal / code captures */
+  .img-dark { background: #14191A; margin: 20px 0; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); }
+  .img-dark .img-caption { background: #1E2627; color: #9DB0A9; border: none; }
+
+  /* Reaction bubble */
+  .reaction {
+    background: var(--brand-strong); color: #fff; border-radius: 14px 14px 2px 14px;
+    padding: 14px 18px; margin: 12px 0 12px auto; max-width: 92%;
+  }
+  .reaction p { color: #fff; font-size: 15px; line-height: 1.5; margin: 0; }
+
+  /* Footer */
+  .foot {
+    max-width: 640px; margin: 0 auto; padding: 0 20px 40px;
+    font-size: 13px; color: var(--text-light); text-align: center; line-height: 1.6;
+  }
+  .foot a { color: var(--brand-accent); font-weight: 600; }
+
+  @media (max-width: 480px) {
+    .img-grid-2 { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <header class="header">
-    <h1>CAISE</h1>
-    <div class="subtitle">Photovoice example</div>
-  </header>
+<header>
+  <div class="inner">
+    <p class="ucl-label">CAISE &middot; Photovoice example</p>
+    <h1>How does generative AI appear in my life?</h1>
+    <p class="byline">Sarah Turner</p>
+  </div>
+</header>
 
-  <main class="content">
+<main>
 
-    <div class="hero">
-      <h2>An example</h2>
-      <p>This shows the kind of thing a participant might share in their AI diary — a photo, a voice note or a piece of writing, each with a caption explaining what it means.</p>
+  <div class="intro-card">
+    <p>This is my answer to the question "How does generative AI appear in my life?" I sat down and thought about what I had done with, and what I had seen about, generative AI over the past week or so.</p>
+    <p>I then:</p>
+    <ul>
+      <li>Took or found relevant photos</li>
+      <li>Took screenshots</li>
+      <li>Wrote captions for them</li>
+    </ul>
+    <p>What is below is most of what I captured.</p>
+    <p>Can you do the same sort of thing?</p>
+  </div>
+
+  <div class="capture">
+    <div class="capture-label">Capture 1 &middot; Claude.ai</div>
+    <h2>The thinking partner</h2>
+    <div class="img-single">
+      <img src="images/claude-desktop.png" alt="Claude desktop showing the greeting 'Good afternoon, Sarah'">
+      <div class="img-caption">Claude desktop, mid-afternoon. It knows my name because I told it when I set it up. Sometimes it says silly things like "Sarah returns!" which, annoyingly, make me smile. Which, of course, is exactly what it's meant to do to keep me coming back.</div>
     </div>
+    <div class="capture-body">
+      <p>I work alone most of the time. My research involves a lot of "thinky" work &mdash; half-formed ideas that need a lot of prodding before I know what I actually think. When there aren't people around, Claude has become the thing I argue with.</p>
+      <p>It doesn't give me the answer. But the act of explaining something to something that responds is often enough to find what I'm actually trying to say.</p>
+    </div>
+    <div class="img-single">
+      <img src="images/wordpress-stop.png" alt="Claude saying 'Stop here. You're not going to get around this through WordPress.com'">
+      <div class="img-caption">Oh really, Claude?</div>
+    </div>
+    <div class="capture-body">
+      <p>But you know what, you really have to be aware what you're talking to and what you're asking. This screenshot sums it up. I was convinced I could figure out a solution to this. This particular Claude model told me it could not be done. 20 minutes later, a more advanced model, and in Claude Code (see below for what that is)? Totally solved. A constant reminder that this is a tool you need to know how to use, which means using different approaches for different things.</p>
+    </div>
+  </div>
 
-    <!-- TODO: replace these placeholder entries with the researcher's real example.
-         For a photo, swap the .card-photo block for a real image:
-         <img class="card-photo" style="object-fit:cover;" src="../assets/example/example-1.jpg" alt="Describe the photo here"> -->
+  <div class="capture">
+    <div class="capture-label">Capture 2 &middot; Cowork</div>
+    <h2>What's on my plate this morning</h2>
+    <div class="img-single">
+      <img src="images/cowork.png" alt="Cowork interface asking 'What can I take off your plate?'">
+      <div class="img-caption">Cowork &mdash; an AI tool built on Claude. It's set up to run when I open my laptop.</div>
+    </div>
+    <div class="capture-body">
+      <p>Cowork summarises my personal email every morning, picks out news and writing relevant to my research, and flags things I need to act on. "What can I take off your plate?" &mdash; again with the anthropomorphism. In this case though, perhaps it's less clear what Cowork is supposed to do?</p>
+      <p>This one is mostly useful. When it works, it means I start the day with a clear picture of what actually needs attention. But it does not always work.</p>
+    </div>
+  </div>
 
-    <div class="card">
-      <div class="card-photo" aria-hidden="true">&#128247; Example photo</div>
-      <div class="card-body">
-        <p class="card-caption">Used an AI app to help me understand a maths topic I'd been stuck on. It explained it in a way that finally clicked — but I still checked the answer myself afterwards.</p>
-        <div class="card-meta"><span>A photo + caption</span> <span class="badge">Photo</span></div>
+  <div class="capture">
+    <div class="capture-label">Capture 3 &middot; Claude.ai</div>
+    <h2>What can I make with this?</h2>
+    <div class="img-grid-2">
+      <div class="img-single">
+        <img src="images/veg.jpg" alt="A vegetable drawer with aubergines, peppers and celery">
+        <div class="img-caption">The veg drawer. Two aubergines, three green peppers, one red, celery.</div>
+      </div>
+      <div class="img-single">
+        <img src="images/tins.jpg" alt="Tins on a table: baked beans, chickpeas, chopped tomatoes">
+        <div class="img-caption">The tinned goods situation. Too many baked beans, as ever.</div>
       </div>
     </div>
+    <div class="img-single">
+      <img src="images/meal-plan.png" alt="A weekly meal plan document with shopping list and cooking instructions">
+      <div class="img-caption">The output. Complete with how to hide slimy veg that came in the veg box.</div>
+    </div>
+    <div class="capture-body">
+      <p>This is probably the best use of generative AI for me right now. And it works pretty well because it's pattern-matching on pattern-matching. I take a photo of my veg drawer, and it knows what the vegetables look like. And then it has the list of vegetables, and tins, and whatever, to tell me what I can cook with it.</p>
+      <p>The meal plan it generates is actually quite good. I tell it how many meals, how much time we have to cook, and any foods that the family don't really like. It saves me time on stuff I don't have much time for.</p>
+    </div>
+  </div>
 
-    <div class="card">
-      <div class="card-body">
-        <p class="card-caption">I asked an AI to help me come up with ideas for my art project. It gave me loads, but they felt a bit samey — so I mixed two together and added my own twist. The ideas got better once I pushed back on it.</p>
-        <div class="card-meta"><span>Just writing</span> <span class="badge">Text</span></div>
+  <div class="capture">
+    <div class="capture-label">Capture 4 &middot; Claude Code</div>
+    <h2>When it really works</h2>
+    <div class="img-dark">
+      <img src="images/claude-code.png" alt="The Claude Code terminal interface">
+      <div class="img-caption">Claude Code &mdash; a terminal interface. It runs code on your computer. You don't need to know how to code.</div>
+    </div>
+    <div class="capture-body">
+      <p>I never learned how to code in any meaningful way. But I need to make computers do things. For this research I needed to collect news articles about AI and young people from 32 different outlets across 10 countries. Done manually, this would have taken weeks.</p>
+      <p>I described what I needed. Claude Code wrote the script. Here's what it was searching for:</p>
+    </div>
+    <div class="img-dark">
+      <img src="images/code-script.png" alt="A Python script showing search queries for children and AI news">
+      <div class="img-caption">The script Claude Code wrote. Track 1: Guardian API. Track 2: NYT. Track 3: everything else via Brave Search.</div>
+    </div>
+    <div class="capture-body">
+      <p>And here's what came back:</p>
+    </div>
+    <div class="img-dark">
+      <img src="images/code-output.png" alt="A terminal log showing 1,460 articles collected from 32 outlets in 8 minutes 36 seconds">
+      <div class="img-caption">The timestamp is at the bottom: elapsed 0:08:36.</div>
+    </div>
+    <div class="capture-body">
+      <p>1,460 articles from 32 outlets across 10 countries. 8 minutes and 36 seconds from pressing go to having the data.</p>
+    </div>
+  </div>
+
+  <div class="capture">
+    <div class="capture-label">Capture 5 &middot; Microsoft Copilot</div>
+    <h2>The one that doesn't work</h2>
+    <div class="capture-body">
+      <p>I work at organisations that use Microsoft Office, which means Copilot for work email &mdash; not Claude. I tried to ask it to do what Cowork does for my personal inbox: scan my emails and tell me what needs a response.</p>
+    </div>
+    <div class="img-sequence">
+      <div class="img-single">
+        <img src="images/copilot-start.png" alt="The Copilot interface with the prompt 'Try, write an email'">
+        <div class="img-caption">Copilot. Microsoft's AI, built into Outlook. The suggestions it offers unprompted: "What did I miss?" and "Which emails need urgent replies?"</div>
+      </div>
+      <div class="img-single">
+        <img src="images/copilot-prompt.png" alt="A Copilot prompt and response showing 'None contain a direct ask to you'">
+        <div class="img-caption">Using its own suggested prompt. There were nine emails directly addressed to me. The answer: none of them qualify.</div>
+      </div>
+      <div class="img-single">
+        <img src="images/copilot-why.png" alt="Copilot response: 'Why these made the cut (strictly based on explicit asks)'">
+        <div class="img-caption">After I pushed back: "Why these made the cut (strictly based on explicit asks)." I...know why they made the cut. I had to point out why they did.</div>
       </div>
     </div>
+    <div class="capture-body">
+      <p>I messaged my husband. His response:</p>
+    </div>
+    <div class="reaction">
+      <p>"Do you ever wonder what fraction of AI resources are used up by precisely that interaction?"</p>
+    </div>
+    <div class="capture-body">
+      <p>Yes. Frequently. What a waste.</p>
+    </div>
+  </div>
 
-    <div class="card">
-      <div class="card-file"><span class="file-icon" aria-hidden="true">&#127908;</span><span>Voice note</span></div>
-      <div class="card-body">
-        <p class="card-caption">Recorded a quick voice note about using AI to practise for my French speaking test — handy for vocab, but the accent it used felt a bit off.</p>
-        <div class="card-meta"><span>A voice note + caption</span> <span class="badge">Voice</span></div>
+  <div class="capture">
+    <div class="capture-label">Capture 6 &middot; Google Gemini</div>
+    <h2>The one that makes me a bit uncomfortable</h2>
+    <div class="capture-body">
+      <p>My husband has discovered that AI image generation can get things out of his head and into the world. He describes it as a way of externalising the visual thinking that was already there but had no route out. It brings him genuine joy.</p>
+      <p>He sent me these from Gemini. Our dog. Himself. Both rendered in the style of something very specific.</p>
+    </div>
+    <div class="img-grid-2">
+      <div class="img-single">
+        <img src="images/andy-bluey-crop.png" alt="A grey schnauzer dog rendered in the Bluey animation style">
+        <div class="img-caption">Our dog. Direct from the Heeler universe?</div>
+      </div>
+      <div class="img-single">
+        <img src="images/andy-wallace-crop.png" alt="A man rendered in Aardman claymation style in a cheese shop">
+        <div class="img-caption">My husband as an Aardman extra.</div>
       </div>
     </div>
+    <div class="capture-body">
+      <p>This feels far more icky to me than text-based stuff. It shouldn't; I am perfectly aware that the ick should be there for both. In both cases, the outputs that are returned are only there because of being trained on significant amounts of data that has not been paid for, or that the creator has agreed to. With a chat-based tool, the question of what data the model was trained on, and how it was obtained, is easy to set aside. The output is just text. It's easy to move on; after all, it's a mashup and typically, you're not going to see the precise thing that reminds you of the scraping/copyright issues.</p>
+      <p>With image generation, particularly when it produces something this clearly derivative of a specific copyright-protected visual style, that gets harder. Gemini does not care about Bluey's creators or Aardman. It has consumed their work and will reproduce its aesthetic on request, for free, at scale, without any indication this is a problem.</p>
+      <p>I'm not sure what to do with the fact that I need to see the picture to be reminded of this particular cost.</p>
+    </div>
+  </div>
 
-    <div class="note">There are no right or wrong answers — an entry is about your own experience, in your own words.</div>
+  <div class="capture">
+    <div class="capture-label">Capture 7 &middot; News, podcasts, TV</div>
+    <h2>The ambient noise</h2>
+    <div class="capture-body">
+      <p>I dislike most tech coverage from most major news organisations. Their tech coverage is relentless doom; their approach to children and technology makes me want to break things. I scroll through it most days anyway because understanding the discourse is part of the job &mdash; but I find myself wanting to avoid it more and more.</p>
+    </div>
+    <div class="img-grid-2">
+      <div class="img-single">
+        <img src="images/guardian-spacex.png" alt="Guardian headline: After SpaceX's huge IPO, Americans' financial future will be bound to AI">
+        <div class="img-caption">Guardian business section. "They're about to get more AI rammed down their throats."</div>
+      </div>
+      <div class="img-single">
+        <img src="images/guardian-pokemon.png" alt="Guardian headline: Pokémon Go data trained AI that could assist military drones in war zones">
+        <div class="img-caption">Pok&eacute;mon Go. Military drones. How much weight is "could" holding there? Who can say.</div>
+      </div>
+    </div>
+    <div class="capture-body">
+      <p>In the background: a podcast about the building of the Colossus data centre &mdash; the biggest single AI infrastructure bet in history. I'm seven minutes from the end and have been putting it off because a) what good has come from anything linked to Grok and b) what do I do with the information? Do I know enough to keep it in context?</p>
+    </div>
+    <div class="img-single">
+      <img src="images/podcast-colossus.png" alt="Search Engine podcast: the Colossus 1 episode">
+      <div class="img-caption">Search Engine: Colossus 1. 7 minutes left.</div>
+    </div>
+    <div class="capture-body">
+      <p>And then there's Hacks and The Pitt. AI has turned up in my favourite TV shows as unalloyed evil. A while back I was studying ransomware, and that was a storyline everywhere too. I did shout at the screen in the Hacks episode referenced here. Just like my concern about the Search Engine podcast, I know there's more nuance to the argument than "AI datacentres are the problem". Datacentres? Probably. But how many are Colossus, vs how many are helping us stream...well...Hacks?</p>
+      <p>It was actually an interesting storyline though. The much older comedian character was completely unbothered &mdash; AI would only ever be a cheap imitation of her. The younger character was the one in crisis. That's the bit I've decided I'll remember!</p>
+    </div>
+    <div class="img-single">
+      <img src="images/vanityfair-hacks.png" alt="Vanity Fair headline: AI Is Now Appearing in Plotlines and It's Starring as a Very Bad Guy">
+      <div class="img-caption">Vanity Fair, May 2026. Hacks, The Comeback, The Pitt. AI as extinction event.</div>
+    </div>
+  </div>
 
-    <p class="foot">
-      This is an example page. Participants open their own diary using the personal link they were given.<br>
-      Questions? Contact Sarah at <a href="mailto:s.turner@ucl.ac.uk">s.turner@ucl.ac.uk</a>.
-    </p>
+  <div class="capture">
+    <div class="capture-label">Capture 8 &middot; Work context</div>
+    <h2>What my professional world looks like right now</h2>
+    <div class="capture-body">
+      <p>Alongside the tools and the cultural noise, there's a specific professional landscape I'm embedded in. Everyone, everywhere has opinions, and they typically end up in reports and soundbites.</p>
+      <p>Always, everywhere, you have to be aware who is reporting what, why, and how. Everyone has an agenda, and you can use statistics to tell any story you like.</p>
+    </div>
+    <div class="img-single">
+      <img src="images/eef-research.png" alt="EEF: New landmark programme to investigate AI impact on learning and cognition, £2.5m">
+      <div class="img-caption">The Education Endowment Foundation just committed &pound;2.5m to study how generative AI affects how children learn. This is...actually not a lot of money for such a big question.</div>
+    </div>
+    <div class="img-grid-2">
+      <div class="img-single">
+        <img src="images/banning-youth.png" alt="Headline: Will banning youth from AI and social media actually help the anxious generation?">
+        <div class="img-caption">Let's go with no.</div>
+      </div>
+      <div class="img-single">
+        <img src="images/unicef-friend.png" alt="UNICEF: When AI becomes a friend — child rights risks and regulatory responses to AI chatbots">
+        <div class="img-caption">UNICEF naming the AI companion risk specifically: interestingly, this one is aimed at industry.</div>
+      </div>
+    </div>
+    <div class="img-single">
+      <img src="images/kcsie-2026.png" alt="KCSIE 2026 update on online safety and mobile phones including AI">
+      <div class="img-caption">Keeping Children Safe in Education 2026 &mdash; the statutory safeguarding guidance for schools &mdash; has been updated to include AI explicitly.</div>
+    </div>
+  </div>
 
-  </main>
-</div>
+</main>
+
+<footer class="foot">
+  This is an example page. Participants open their own diary using the personal link they were given.<br>
+  Questions? Contact Sarah at <a href="mailto:s.turner@ucl.ac.uk">s.turner@ucl.ac.uk</a>.
+</footer>
+
 </body>
 </html>
