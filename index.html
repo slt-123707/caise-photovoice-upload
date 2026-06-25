@@ -433,6 +433,13 @@ a:focus-visible, .caption-area:focus-visible {
 .about-warning .warn-icon { font-size: 22px; line-height: 1.3; flex-shrink: 0; }
 .about-warning p { font-size: 14px; line-height: 1.6; color: var(--warn-text); }
 .about-warning strong { color: var(--warn-text); }
+
+/* ---- Unsent banner ---- */
+.unsent-banner {
+  background: var(--warn-bg); border: 1px solid var(--warn-border); border-radius: var(--radius-sm);
+  padding: 14px 16px; display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; margin-bottom: 16px; font-size: 14px; color: var(--warn-text);
+}
 </style>
 </head>
 <body>
@@ -569,9 +576,9 @@ a:focus-visible, .caption-area:focus-visible {
       </div>
       <button class="btn btn-danger btn-full" onclick="confirmClearData()">Clear local history</button>
       <p class="text-sm text-light text-center" style="margin-top:8px;">
-        CAISE Photovoice v2.0<br>
+        CAISE Photovoice v2.1<br>
         Your entries are sent directly to your researcher's secure folder.<br>
-        History on this device is just for your reference.
+        A backup is kept on this device until the study ends.
       </p>
     </div>
   </div>
@@ -607,8 +614,8 @@ a:focus-visible, .caption-area:focus-visible {
           <li><span class="tick" aria-hidden="true">&#10003;</span><span>No other students, and nobody on the internet, can see your entries.</span></li>
           <li><span class="tick" aria-hidden="true">&#10003;</span><span>Photos have details like location and the exact time automatically removed before they're sent, so a photo can't give away where you were.</span></li>
           <li><span class="tick" aria-hidden="true">&#10003;</span><span>The app never asks for your name and there's no password. Your personal link is what tells the researcher an entry is yours.</span></li>
-          <li><span class="tick" aria-hidden="true">&#10003;</span><span>Photos and voice notes you make in the app aren't saved to the device's camera roll or Files — the only copy on this device is inside your Diary here.</span></li>
-          <li><span class="tick" aria-hidden="true">&#10003;</span><span>The <strong>Diary</strong> on this device is just your own copy. Clearing it doesn't delete anything you've already sent. But if you clear your cookies, it will disappear.</span></li>
+          <li><span class="tick" aria-hidden="true">&#10003;</span><span>Photos and voice notes you make in the app aren't saved to the device's camera roll or Files — they're kept inside your Diary here as a safe backup until the study ends.</span></li>
+          <li><span class="tick" aria-hidden="true">&#10003;</span><span>The <strong>Diary</strong> on this device is your own copy. Clearing it doesn't delete anything you've already sent — but please don't clear your browser data, so your backup stays safe.</span></li>
           <li><span class="tick" aria-hidden="true">&#10003;</span><span>You're in charge: you choose what to capture, what to write. Regret sending something? <a class="about-link" href="mailto:s.turner@ucl.ac.uk">Email Sarah, the researcher</a>.</span></li>
         </ul>
       </div>
@@ -629,7 +636,7 @@ a:focus-visible, .caption-area:focus-visible {
           <li><span>Choose how to share: take a photo, pick one from your gallery, record a voice note, add a file, or just write.</span></li>
           <li><span>Add a caption — a sentence or two about what it is and why it matters. This is the most important part!</span></li>
           <li><span>Tap <strong>Send</strong>. You'll see a green tick when it's safely delivered.</span></li>
-          <li><span>Your entries appear in <strong>Diary</strong>. If one didn't send (say you had no internet), it waits there so you can try again.</span></li>
+          <li><span>Your entries appear in <strong>Diary</strong>. If one didn't send (say you had no internet), the app will keep trying automatically — you don't need to do anything.</span></li>
         </ol>
       </div>
 
@@ -689,6 +696,24 @@ a:focus-visible, .caption-area:focus-visible {
       </div>
 
       <button class="btn btn-primary btn-full" onclick="showScreen('about')">Back &#10003;</button>
+    </div>
+  </div>
+
+  <!-- Screen: Recovery (researcher access via ?recover) -->
+  <div class="screen" id="screen-recovery">
+    <div class="content gap-16">
+      <div class="about-hero" style="background: linear-gradient(135deg, #D97706 0%, #B45309 100%);">
+        <div class="hero-emoji" aria-hidden="true">&#128295;</div>
+        <h2>Recovery Mode</h2>
+        <p>Researcher view — all locally stored entries with full media.</p>
+      </div>
+      <div id="recoveryStats" class="text-sm text-light text-center"></div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-primary" id="recoverySendAllBtn" onclick="recoverySendAll()" style="flex:1;">Send all unsent</button>
+        <button class="btn btn-secondary" onclick="renderRecovery()" style="flex:0; padding:14px;">&#8635;</button>
+      </div>
+      <div id="recoveryContent"></div>
+      <button class="btn btn-secondary btn-full" onclick="showScreen('portfolio')">Exit recovery</button>
     </div>
   </div>
 
@@ -796,8 +821,20 @@ window.addEventListener('DOMContentLoaded', async () => {
   DB_NAME = `caise-diary-v2-t${token}`;
   document.getElementById('headerSubtitle').textContent = CONFIG.subtitle;
 
+  if (navigator.storage && navigator.storage.persist) {
+    navigator.storage.persist();
+  }
+
   await initDB();
-  renderPortfolio();
+
+  // Check if this is a researcher recovery session
+  if (params.has('recover')) {
+    showScreen('recovery');
+    renderRecovery();
+  } else {
+    renderPortfolio();
+    autoRetryUnsent();
+  }
   setupFileInputs();
 });
 
@@ -1303,9 +1340,10 @@ async function saveLocally(caption, status, thumbnail, filename) {
     token: currentToken,
   };
 
-  if (status === 'failed' || status === 'pending') {
-    const ab = await currentCapture.blob.arrayBuffer();
-    entry.mediaData = ab;
+  const blob = currentCapture.blob
+    || (currentCapture.type === 'text' ? new Blob([caption], { type: 'text/plain' }) : null);
+  if (blob) {
+    entry.mediaData = await blob.arrayBuffer();
   }
 
   await dbPut(entry);
@@ -1361,8 +1399,7 @@ async function retryEntry(id) {
       if (!response.ok) throw new Error(`Server returned ${response.status}`);
 
       entry.status = 'sent';
-      delete entry.mediaData;
-      if (entry.type === 'image' && !entry.thumbnail) {
+      if (entry.type === 'image' && !entry.thumbnail && entry.mediaData) {
         entry.thumbnail = await createThumbnail(new Blob([entry.mediaData], { type: entry.mimeType })).catch(() => null);
       }
       await dbPut(entry);
@@ -1414,15 +1451,28 @@ async function renderPortfolio() {
   const list = document.getElementById('entryList');
   const empty = document.getElementById('emptyState');
 
+  // Always clean up the banner first
+  const existingBanner = document.getElementById('unsentBanner');
+  if (existingBanner) existingBanner.remove();
+
   if (entries.length === 0) {
     empty.classList.remove('hidden');
     list.innerHTML = '';
+    updateNavBadge(0);
     return;
   }
 
   empty.classList.add('hidden');
   const pending = entries.filter(e => e.status === 'failed' || e.status === 'pending').length;
   updateNavBadge(pending);
+  if (pending > 0) {
+    const banner = document.createElement('div');
+    banner.id = 'unsentBanner';
+    banner.className = 'unsent-banner';
+    banner.innerHTML = `<div><strong>${pending} unsent</strong> entr${pending === 1 ? 'y' : 'ies'} — check your connection</div>
+      <button class="btn btn-primary" id="unsentBannerBtn" onclick="sendAllUnsent()" style="padding:10px 18px; font-size:13px; white-space:nowrap;">Send all now</button>`;
+    list.parentNode.insertBefore(banner, list);
+  }
 
   list.innerHTML = entries.map(entry => {
     const date = new Date(entry.timestamp);
@@ -1512,6 +1562,262 @@ async function updateSettings() {
     `${sent} sent, ${entries.length} total in local history`;
   document.getElementById('settingConnection').textContent =
     CONFIG.webhookUrl ? 'Connected' : 'Not configured yet';
+}
+
+// ---- Auto-retry unsent entries ----
+let autoRetryTimer = null;
+let autoRetryInProgress = false;
+
+async function autoRetryUnsent() {
+  if (autoRetryInProgress || !CONFIG.webhookUrl) return;
+  autoRetryInProgress = true;
+
+  try {
+    const entries = await dbGetAll();
+    const unsent = entries.filter(e => e.status === 'failed' || e.status === 'pending');
+    let anySuccess = false;
+
+    for (const entry of unsent) {
+      if (!entry.mediaData) continue;
+      try {
+        let mediaBlob = new Blob([entry.mediaData], { type: entry.mimeType });
+        let mimeType = entry.mimeType;
+
+        if (entry.type === 'image') {
+          mediaBlob = await processImage(mediaBlob, entry.caption, 1280, 0.80);
+          mimeType = 'image/jpeg';
+        }
+
+        const mediaBase64 = await blobToBase64(mediaBlob);
+        const filename = buildFilename(entry.caption, mimeType, entry.filename);
+
+        const response = await fetch(CONFIG.webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            token: currentToken,
+            caption: entry.caption,
+            filename: filename,
+            mediaBase64: mediaBase64,
+            mimeType: mimeType,
+            mediaType: entry.type,
+            timestamp: new Date(entry.timestamp).toISOString(),
+            originalFilename: entry.filename,
+          }),
+        });
+
+        if (response.ok) {
+          entry.status = 'sent';
+          if (entry.type === 'image' && !entry.thumbnail) {
+            entry.thumbnail = await createThumbnail(new Blob([entry.mediaData], { type: entry.mimeType })).catch(() => null);
+          }
+          await dbPut(entry);
+          anySuccess = true;
+        }
+      } catch (e) {
+        // Network error — skip, will retry next cycle
+      }
+    }
+
+    if (anySuccess) renderPortfolio();
+  } finally {
+    autoRetryInProgress = false;
+  }
+
+  // Schedule next retry in 60 seconds
+  if (autoRetryTimer) clearTimeout(autoRetryTimer);
+  autoRetryTimer = setTimeout(autoRetryUnsent, 60000);
+}
+
+// ---- Send all unsent (manual trigger) ----
+async function sendAllUnsent() {
+  const btn = document.getElementById('unsentBannerBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
+
+  // Wait for any in-progress auto-retry to finish before starting
+  while (autoRetryInProgress) {
+    await new Promise(r => setTimeout(r, 500));
+  }
+  await autoRetryUnsent();
+
+  const entries = await dbGetAll();
+  const stillUnsent = entries.filter(e => e.status === 'failed' || e.status === 'pending').length;
+
+  if (stillUnsent === 0) {
+    if (btn) { btn.textContent = 'All sent!'; }
+    setTimeout(renderPortfolio, 1500);
+  } else {
+    if (btn) { btn.disabled = false; btn.textContent = 'Send all now'; }
+    alert(`${stillUnsent} entry/entries still couldn't send. Check the internet connection and try again.`);
+  }
+}
+
+// ---- Recovery mode (researcher access via ?recover) ----
+let recoveryBlobUrls = [];
+
+async function renderRecovery() {
+  recoveryBlobUrls.forEach(u => URL.revokeObjectURL(u));
+  recoveryBlobUrls = [];
+
+  const container = document.getElementById('recoveryContent');
+  const entries = await dbGetAll();
+
+  if (entries.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="icon" aria-hidden="true">&#128194;</div><h2>No local data</h2><p>IndexedDB is empty for this token.</p></div>';
+    updateRecoveryStats(entries);
+    return;
+  }
+
+  updateRecoveryStats(entries);
+
+  container.innerHTML = entries.map(entry => {
+    const date = new Date(entry.timestamp);
+    const dateStr = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    const timeStr = date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+
+    let mediaHtml = '';
+    if (entry.mediaData) {
+      const blob = new Blob([entry.mediaData], { type: entry.mimeType });
+      const url = URL.createObjectURL(blob);
+      recoveryBlobUrls.push(url);
+      if (entry.type === 'image') {
+        mediaHtml = `<img class="entry-card-media" src="${url}" alt="Full image" style="max-height:400px; object-fit:contain;">`;
+      } else if (entry.type === 'audio') {
+        mediaHtml = `<audio class="audio-preview" controls src="${url}"></audio>`;
+      } else if (entry.type === 'video') {
+        mediaHtml = `<video class="preview-media" controls playsinline src="${url}"></video>`;
+      } else {
+        mediaHtml = `<div class="entry-card-file"><span class="file-icon">&#128206;</span><span class="file-name">${escapeHtml(entry.filename)}</span></div>`;
+      }
+    } else if (entry.thumbnail) {
+      mediaHtml = `<img class="entry-card-media" src="${entry.thumbnail}" alt="Thumbnail only">`;
+    } else {
+      mediaHtml = `<div class="entry-card-file"><span class="file-icon">&#128196;</span><span class="file-name">No media stored</span></div>`;
+    }
+
+    const typeLabel = { image: 'Photo', video: 'Video', audio: 'Voice', file: 'File', text: 'Text' }[entry.type] || 'File';
+    const statusClass = { sent: 'badge-sent', failed: 'badge-failed', pending: 'badge-pending' }[entry.status] || 'badge-pending';
+    const hasMedia = !!entry.mediaData;
+
+    let actionHtml = '';
+    if (entry.status !== 'sent' && hasMedia) {
+      actionHtml = `<div class="entry-card-actions"><button class="btn btn-primary" onclick="recoveryRetry('${entry.id}')">Resend</button></div>`;
+    } else if (entry.status === 'sent' && hasMedia) {
+      actionHtml = `<div class="entry-card-actions"><button class="btn btn-secondary" onclick="recoveryRetry('${entry.id}')">Resend (duplicate)</button></div>`;
+    }
+
+    return `<div class="entry-card">
+      ${mediaHtml}
+      <div class="entry-card-body">
+        <div class="entry-card-caption">${escapeHtml(entry.caption) || '<em style="color:var(--text-light)">No caption</em>'}</div>
+        <div class="entry-card-meta">
+          <span>${dateStr} ${timeStr}</span>
+          <span><span class="badge badge-type">${typeLabel}</span> <span class="badge ${statusClass}">${entry.status}</span></span>
+        </div>
+        <div style="margin-top:8px; font-size:11px; color:var(--text-light);">
+          ID: ${entry.id} &middot; Media: ${hasMedia ? formatBytes(entry.mediaData.byteLength) : 'none'}
+        </div>
+      </div>
+      ${actionHtml}
+    </div>`;
+  }).join('');
+}
+
+function updateRecoveryStats(entries) {
+  const el = document.getElementById('recoveryStats');
+  if (!el) return;
+  const sent = entries.filter(e => e.status === 'sent').length;
+  const failed = entries.filter(e => e.status === 'failed').length;
+  const pending = entries.filter(e => e.status === 'pending').length;
+  const withMedia = entries.filter(e => e.mediaData).length;
+  const totalBytes = entries.reduce((sum, e) => sum + (e.mediaData ? e.mediaData.byteLength : 0), 0);
+  el.textContent = `${entries.length} entries (${sent} sent, ${failed} failed, ${pending} pending) · ${withMedia} with stored media · ${formatBytes(totalBytes)} total`;
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+async function recoveryRetry(id) {
+  const tx = db.transaction('entries', 'readonly');
+  const req = tx.objectStore('entries').get(id);
+  req.onsuccess = async (e) => {
+    const entry = e.target.result;
+    if (!entry || !entry.mediaData) { alert('No media data for this entry.'); return; }
+
+    try {
+      let mediaBlob = new Blob([entry.mediaData], { type: entry.mimeType });
+      let mimeType = entry.mimeType;
+      if (entry.type === 'image') {
+        mediaBlob = await processImage(mediaBlob, entry.caption, 1280, 0.80);
+        mimeType = 'image/jpeg';
+      }
+      const mediaBase64 = await blobToBase64(mediaBlob);
+      const filename = buildFilename(entry.caption, mimeType, entry.filename);
+
+      const response = await fetch(CONFIG.webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token: currentToken, caption: entry.caption, filename: filename,
+          mediaBase64: mediaBase64, mimeType: mimeType, mediaType: entry.type,
+          timestamp: new Date(entry.timestamp).toISOString(), originalFilename: entry.filename,
+        }),
+      });
+
+      if (!response.ok) throw new Error(`Server returned ${response.status}`);
+      entry.status = 'sent';
+      await dbPut(entry);
+      alert('Sent successfully.');
+      renderRecovery();
+    } catch (err) {
+      alert('Send failed: ' + err.message);
+    }
+  };
+}
+
+async function recoverySendAll() {
+  const btn = document.getElementById('recoverySendAllBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
+
+  const entries = await dbGetAll();
+  const unsent = entries.filter(e => (e.status === 'failed' || e.status === 'pending') && e.mediaData);
+  let succeeded = 0, failed = 0;
+
+  for (const entry of unsent) {
+    try {
+      let mediaBlob = new Blob([entry.mediaData], { type: entry.mimeType });
+      let mimeType = entry.mimeType;
+      if (entry.type === 'image') {
+        mediaBlob = await processImage(mediaBlob, entry.caption, 1280, 0.80);
+        mimeType = 'image/jpeg';
+      }
+      const mediaBase64 = await blobToBase64(mediaBlob);
+      const filename = buildFilename(entry.caption, mimeType, entry.filename);
+
+      const response = await fetch(CONFIG.webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token: currentToken, caption: entry.caption, filename: filename,
+          mediaBase64: mediaBase64, mimeType: mimeType, mediaType: entry.type,
+          timestamp: new Date(entry.timestamp).toISOString(), originalFilename: entry.filename,
+        }),
+      });
+
+      if (response.ok) {
+        entry.status = 'sent';
+        await dbPut(entry);
+        succeeded++;
+      } else { failed++; }
+    } catch (e) { failed++; }
+  }
+
+  alert(`Done: ${succeeded} sent, ${failed} failed.`);
+  if (btn) { btn.disabled = false; btn.textContent = 'Send all unsent'; }
+  renderRecovery();
 }
 
 // ---- Utilities ----

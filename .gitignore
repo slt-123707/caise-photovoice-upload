@@ -1,0 +1,10 @@
+node_modules/
+.claude/
+walkthrough-screenshots-surface/
+walkthrough-slides/
+walkthrough-exports/
+video-frames/
+build-slides.js
+capture-screens.js
+make-video.js
+*.jpeg
