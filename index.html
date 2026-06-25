@@ -203,10 +203,7 @@ a:focus-visible, .caption-area:focus-visible {
   transform: translateY(-2px); box-shadow: var(--shadow-lg);
 }
 .capture-card .icon {
-  font-size: 30px; margin: 0 auto 10px; width: 60px; height: 60px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  background: var(--icon-tint);
-  line-height: 1; padding-top: 3px;
+  font-size: 30px; margin: 0 auto 10px;
 }
 .capture-card .label { font-size: 14px; font-weight: 600; color: var(--text); }
 .capture-card .desc { font-size: 11px; color: var(--text-light); margin-top: 4px; }
@@ -285,10 +282,7 @@ a:focus-visible, .caption-area:focus-visible {
   text-align: center; padding: 56px 24px; color: var(--text-light);
 }
 .empty-state .icon {
-  font-size: 44px; margin: 0 auto 18px; width: 96px; height: 96px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  background: var(--icon-tint); box-shadow: var(--shadow);
-  line-height: 1; padding-top: 4px;
+  font-size: 44px; margin: 0 auto 18px;
 }
 .empty-state h2 { font-size: 19px; margin-bottom: 8px; color: var(--text); }
 .empty-state p { font-size: 14px; line-height: 1.6; max-width: 300px; margin: 0 auto; }
@@ -487,7 +481,7 @@ a:focus-visible, .caption-area:focus-visible {
         <button type="button" class="capture-card" onclick="startCapture('gallery')">
           <div class="icon" aria-hidden="true">&#128444;&#65039;</div>
           <div class="label">Gallery</div>
-          <div class="desc">Pick an image or screenshot</div>
+          <div class="desc">Pick an image, screenshot or video</div>
         </button>
         <button type="button" class="capture-card" onclick="startCapture('voice')">
           <div class="icon" aria-hidden="true">&#127908;</div>
@@ -649,7 +643,6 @@ a:focus-visible, .caption-area:focus-visible {
     <div class="content gap-16">
 
       <div class="about-hero">
-        <div class="hero-emoji" aria-hidden="true">&#128247;</div>
         <h2>An example</h2>
         <p>A few bits from researcher Sarah's own diary, answering "How does generative AI appear in my life?" Notice how each one is a photo or screenshot plus a caption saying what it means to her. Yours will be about <em>your</em> life — there's no right answer.</p>
       </div>
@@ -858,6 +851,14 @@ function dbPut(entry) {
     tx.objectStore('entries').put(entry);
     tx.oncomplete = resolve;
     tx.onerror = (e) => reject(e.target.error);
+  });
+}
+
+function dbGet(id) {
+  return new Promise((resolve, reject) => {
+    const req = db.transaction('entries', 'readonly').objectStore('entries').get(id);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = (e) => reject(e.target.error);
   });
 }
 
@@ -1078,8 +1079,11 @@ function showCaptionScreen() {
 }
 
 function updateCharCount() {
-  document.getElementById('charCount').textContent =
-    document.getElementById('captionInput').value.length;
+  const len = document.getElementById('captionInput').value.length;
+  const el = document.getElementById('charCount');
+  el.textContent = len;
+  el.parentElement.style.color = len >= 2000 ? 'var(--danger-text)' : '';
+  el.parentElement.style.fontWeight = len >= 2000 ? '700' : '';
 }
 
 function discardEntry() {
@@ -1415,7 +1419,7 @@ function showSuccessOverlay() {
   const overlay = document.getElementById('sendingOverlay');
   document.getElementById('sendingSpinner').style.display = 'none';
   document.getElementById('sendingText').textContent = 'Sent!';
-  document.getElementById('sendingSubtext').textContent = 'Your entry is safe with your researcher.';
+  document.getElementById('sendingSubtext').textContent = 'Your file has been successfully sent.';
 
   const icon = document.createElement('div');
   icon.className = 'success-icon';
@@ -1471,12 +1475,13 @@ async function renderPortfolio() {
     const timeStr = date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
     let mediaHtml = '';
+    const hasMedia = entry.mediaData && entry.mediaData.byteLength > 0;
     if (entry.thumbnail) {
-      mediaHtml = `<img class="entry-card-media" src="${entry.thumbnail}" alt="Photo">`;
+      mediaHtml = `<img class="entry-card-media" src="${entry.thumbnail}" alt="Photo"${hasMedia ? ` onclick="viewEntryMedia('${entry.id}')" style="cursor:pointer"` : ''}>`;
     } else if (entry.type === 'audio') {
-      mediaHtml = `<div class="entry-card-file"><span class="file-icon">&#127908;</span><span class="file-name">Voice note</span></div>`;
+      mediaHtml = `<div class="entry-card-file"${hasMedia ? ` onclick="viewEntryMedia('${entry.id}')" style="cursor:pointer"` : ''}><span class="file-icon">&#127908;</span><span class="file-name">Voice note${hasMedia ? ' — tap to play' : ''}</span></div>`;
     } else if (entry.type === 'video') {
-      mediaHtml = `<div class="entry-card-file"><span class="file-icon">&#127909;</span><span class="file-name">Video</span></div>`;
+      mediaHtml = `<div class="entry-card-file"${hasMedia ? ` onclick="viewEntryMedia('${entry.id}')" style="cursor:pointer"` : ''}><span class="file-icon">&#127909;</span><span class="file-name">Video${hasMedia ? ' — tap to view' : ''}</span></div>`;
     } else if (entry.type !== 'image') {
       mediaHtml = `<div class="entry-card-file"><span class="file-icon">&#128206;</span><span class="file-name">${escapeHtml(entry.filename)}</span></div>`;
     }
@@ -1513,6 +1518,28 @@ async function renderPortfolio() {
       ${actionHtml}
     </div>`;
   }).join('');
+}
+
+async function viewEntryMedia(id) {
+  const entry = await dbGet(id);
+  if (!entry || !entry.mediaData) return;
+  const blob = new Blob([entry.mediaData], { type: entry.mimeType });
+  const url = URL.createObjectURL(blob);
+  if (entry.type === 'image') {
+    const win = window.open('', '_blank');
+    if (win) { win.document.write(`<img src="${url}" style="max-width:100%;height:auto">`); win.document.title = 'Photo'; }
+  } else if (entry.type === 'audio') {
+    const card = document.querySelector(`[onclick="viewEntryMedia('${id}')"]`);
+    if (card && !card.querySelector('audio')) {
+      const audio = document.createElement('audio');
+      audio.controls = true; audio.src = url; audio.style.cssText = 'width:100%;margin-top:8px;';
+      audio.onended = () => { URL.revokeObjectURL(url); };
+      card.appendChild(audio); audio.play();
+    }
+  } else if (entry.type === 'video') {
+    const win = window.open('', '_blank');
+    if (win) { win.document.write(`<video src="${url}" controls autoplay style="max-width:100%"></video>`); win.document.title = 'Video'; }
+  }
 }
 
 function updateNavBadge(count) {
