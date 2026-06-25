@@ -465,6 +465,7 @@ a:focus-visible, .caption-area:focus-visible {
         <div class="icon" aria-hidden="true">&#128247;</div>
         <h2>Your diary is empty</h2>
         <p>Tap <strong>New</strong> below to capture your first moment with AI.</p>
+        <p style="margin-top:8px"><a class="about-link" href="#" onclick="showScreen('example'); return false;">Not sure what to capture? See an example &#10140;</a></p>
       </div>
       <div id="entryList"></div>
     </div>
@@ -602,8 +603,7 @@ a:focus-visible, .caption-area:focus-visible {
         <p>You capture things that matter to you, add a caption that says what they mean and send them over to the
         research team. At the start of the next term, you'll sit with the research team and check your evidence —
         and then we'll collect all the good pieces together to do an analysis as a group.</p>
-        <!-- TODO: replace href="#" with the real example URL when ready. -->
-        <p>You can read researcher Sarah's example <a class="about-link" href="#" onclick="showScreen('example'); return false;">here</a>.</p>
+        <button class="btn btn-secondary btn-full" onclick="showScreen('example')">See Sarah's example diary &#10140;</button>
       </div>
 
       <!-- What happens when you use it (informal privacy) -->
