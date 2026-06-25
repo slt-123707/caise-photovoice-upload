@@ -206,6 +206,7 @@ a:focus-visible, .caption-area:focus-visible {
   font-size: 30px; margin: 0 auto 10px; width: 60px; height: 60px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   background: var(--icon-tint);
+  line-height: 1; padding-top: 3px;
 }
 .capture-card .label { font-size: 14px; font-weight: 600; color: var(--text); }
 .capture-card .desc { font-size: 11px; color: var(--text-light); margin-top: 4px; }
@@ -287,6 +288,7 @@ a:focus-visible, .caption-area:focus-visible {
   font-size: 44px; margin: 0 auto 18px; width: 96px; height: 96px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   background: var(--icon-tint); box-shadow: var(--shadow);
+  line-height: 1; padding-top: 4px;
 }
 .empty-state h2 { font-size: 19px; margin-bottom: 8px; color: var(--text); }
 .empty-state p { font-size: 14px; line-height: 1.6; max-width: 300px; margin: 0 auto; }
@@ -516,7 +518,7 @@ a:focus-visible, .caption-area:focus-visible {
         <button id="shutterBtn" onclick="takePhoto()" aria-label="Take photo"
           style="width:68px; height:68px; border-radius:50%; border:4px solid white; background:rgba(255,255,255,0.3); cursor:pointer; -webkit-tap-highlight-color:transparent;">
         </button>
-        <button onclick="flipCamera()" class="btn" style="background:rgba(255,255,255,0.2); color:white; padding:10px 20px; font-size:14px; font-weight:600; min-height:44px;">Flip</button>
+        <div style="width:68px;"></div>
       </div>
     </div>
   </div>
@@ -562,11 +564,7 @@ a:focus-visible, .caption-area:focus-visible {
   <!-- Screen: Settings -->
   <div class="screen" id="screen-settings">
     <div class="content gap-16">
-      <h2>Settings</h2>
-      <div class="setting-group">
-        <div class="setting-label">Student</div>
-        <div class="setting-value" id="settingStudent">—</div>
-      </div>
+      <h2>Status</h2>
       <div class="setting-group">
         <div class="setting-label">Entries sent</div>
         <div class="setting-value" id="settingCount">0</div>
@@ -578,8 +576,8 @@ a:focus-visible, .caption-area:focus-visible {
       <button class="btn btn-danger btn-full" onclick="confirmClearData()">Clear local history</button>
       <p class="text-sm text-light text-center" style="margin-top:8px;">
         CAISE Photovoice v2.1<br>
-        Your entries are sent directly to your researcher's secure folder.<br>
-        A backup is kept on this device until the study ends.
+        Your entries are sent directly to Sarah's secure folder.<br>
+        A backup is kept on this device as long as you don't clear your browser data.
       </p>
     </div>
   </div>
@@ -651,7 +649,7 @@ a:focus-visible, .caption-area:focus-visible {
     <div class="content gap-16">
 
       <div class="about-hero">
-        <div class="hero-emoji" aria-hidden="true">&#127775;</div>
+        <div class="hero-emoji" aria-hidden="true">&#128247;</div>
         <h2>An example</h2>
         <p>A few bits from researcher Sarah's own diary, answering "How does generative AI appear in my life?" Notice how each one is a photo or screenshot plus a caption saying what it means to her. Yours will be about <em>your</em> life — there's no right answer.</p>
       </div>
@@ -695,7 +693,7 @@ a:focus-visible, .caption-area:focus-visible {
         </div>
       </div>
 
-      <button class="btn btn-primary btn-full" onclick="showScreen('about')">Back &#10003;</button>
+      <button class="btn btn-primary btn-full" onclick="showScreen('about')">Back</button>
     </div>
   </div>
 
@@ -747,7 +745,7 @@ a:focus-visible, .caption-area:focus-visible {
     </button>
     <button class="nav-item" onclick="showScreen('settings')" data-screen="settings">
       <span class="nav-icon" aria-hidden="true">&#9881;&#65039;</span>
-      Settings
+      Status
     </button>
   </nav>
 </div>
@@ -977,13 +975,6 @@ function takePhoto() {
   }, 'image/jpeg', 0.92);
 }
 
-function flipCamera() {
-  facingMode = facingMode === 'environment' ? 'user' : 'environment';
-  if (cameraStream) {
-    cameraStream.getTracks().forEach(t => t.stop());
-  }
-  openCamera();
-}
 
 function closeCamera() {
   if (cameraStream) {
@@ -1555,7 +1546,6 @@ async function confirmClearData() {
 // ---- Settings ----
 async function updateSettings() {
   if (!currentToken) return;
-  document.getElementById('settingStudent').textContent = 'Connected';
   const entries = await dbGetAll();
   const sent = entries.filter(e => e.status === 'sent').length;
   document.getElementById('settingCount').textContent =
