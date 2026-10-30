@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0E8F6E">
+<title>CAISE — Weekly check-in</title>
+<script>
+/* Set the theme before first paint (shared key with the diary app). */
+(function () {
+  try {
+    var t = localStorage.getItem('caise-theme');
+    if (t !== 'light' && t !== 'dark') {
+      t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) {}
+})();
+</script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --brand: #0E8F6E;
+  --brand-strong: #0B7257;
+  --brand-light: #5DCAA5;
+  --brand-accent: #0F6E56;
+  --gradient: linear-gradient(135deg, #18A57C 0%, #0E8F6E 55%, #0B7257 100%);
+
+  --page-bg: linear-gradient(180deg, #F1FAF6 0%, #E3F4EC 100%);
+  --surface: #FFFFFF;
+  --surface-hover: #F2FAF7;
+  --text: #14211C;
+  --text-light: #5C6B66;
+  --border: #E2E8E5;
+
+  --icon-tint: linear-gradient(135deg, #E1F5EE, #CFEDE2);
+  --brand-tint: #E1F5EE;
+  --overlay-bg: rgba(241, 250, 246, 0.95);
+
+  --success: #10B981;
+  --success-light: #D1FAE5;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --danger-text: #C81E1E;
+
+  --warn-bg: #FEF3C7;
+  --warn-border: #FDE68A;
+  --warn-text: #78350F;
+
+  --radius: 18px;
+  --radius-sm: 12px;
+
+  --shadow: 0 2px 12px rgba(14, 143, 110, 0.10);
+  --shadow-lg: 0 10px 34px rgba(14, 143, 110, 0.18);
+  --shadow-header: 0 6px 20px rgba(14, 143, 110, 0.28);
+  --shadow-btn: 0 6px 16px rgba(14, 143, 110, 0.30);
+  --shadow-panel: 0 0 80px rgba(14, 143, 110, 0.16);
+}
+
+:root[data-theme="dark"] {
+  --brand: #16A883;
+  --brand-strong: #0B7257;
+  --brand-light: #5DCAA5;
+  --brand-accent: #5DCAA5;
+  --gradient: linear-gradient(135deg, #16A883 0%, #0E8F6E 55%, #0A6B52 100%);
+
+  --page-bg: linear-gradient(180deg, #0F1714 0%, #0B120F 100%);
+  --surface: #18211D;
+  --surface-hover: #1F2A25;
+  --text: #E8EFEC;
+  --text-light: #9DB0A9;
+  --border: #2B3933;
+
+  --icon-tint: linear-gradient(135deg, #15352B, #0F2A22);
+  --brand-tint: #15352B;
+  --overlay-bg: rgba(11, 18, 15, 0.95);
+
+  --danger-text: #F09595;
+
+  --warn-bg: #3A2E0A;
+  --warn-border: #5A4711;
+  --warn-text: #FCD34D;
+
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.40);
+  --shadow-lg: 0 10px 34px rgba(0, 0, 0, 0.50);
+  --shadow-header: 0 6px 20px rgba(0, 0, 0, 0.45);
+  --shadow-btn: 0 6px 16px rgba(0, 0, 0, 0.50);
+  --shadow-panel: 0 0 80px rgba(0, 0, 0, 0.55);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--page-bg);
+  background-attachment: fixed;
+  color: var(--text);
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app { max-width: 500px; margin: 0 auto; min-height: 100dvh; display: flex; flex-direction: column; position: relative; }
+
+/* Surface in landscape: frame the app as a centred panel. */
+@media (min-width: 540px) {
+  .app { max-width: 620px; background: var(--surface); box-shadow: var(--shadow-panel); }
+  .content { padding: 24px; }
+}
+
+/* ---- Header ---- */
+.header {
+  background: var(--gradient); color: white; padding: 18px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+  border-radius: 0 0 22px 22px; box-shadow: var(--shadow-header);
+}
+.header h1 { font-size: 19px; font-weight: 700; letter-spacing: 0.2px; }
+.header .subtitle { font-size: 12px; opacity: 0.85; margin-top: 1px; }
+.header-left { display: flex; flex-direction: column; }
+.header-info {
+  width: 44px; height: 44px; border-radius: 50%; border: none;
+  background: rgba(255, 255, 255, 0.18); color: white; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; font-weight: 700; line-height: 1; transition: background 0.2s;
+  -webkit-tap-highlight-color: transparent; flex-shrink: 0;
+}
+.header-info:hover, .header-info:active { background: rgba(255, 255, 255, 0.3); }
+.header-actions { display: flex; gap: 8px; align-items: center; }
+
+/* ---- Screens ---- */
+#main { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.screen { display: none; flex: 1; flex-direction: column; }
+.screen.active { display: flex; }
+.content { flex: 1; padding: 16px; overflow-y: auto; }
+
+/* ---- Progress ---- */
+.progress { display: flex; gap: 6px; padding: 14px 16px 0; align-items: center; }
+.progress .dot { height: 6px; flex: 1; border-radius: 3px; background: var(--border); transition: background 0.3s; }
+.progress .dot.on { background: var(--brand); }
+.progress .dot.done { background: var(--brand-light); }
+@media (min-width: 540px) { .progress { padding: 18px 24px 0; } }
+
+/* ---- Buttons ---- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 14px 24px; border-radius: var(--radius-sm); font-size: 16px;
+  font-weight: 600; border: none; cursor: pointer; transition: all 0.2s;
+  font-family: inherit; -webkit-tap-highlight-color: transparent;
+}
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: var(--gradient); color: white; box-shadow: var(--shadow-btn); }
+.btn-primary:hover { filter: brightness(1.05); }
+.btn-primary:disabled { background: #9CA3AF; box-shadow: none; cursor: not-allowed; filter: none; }
+.btn-secondary { background: var(--surface); color: var(--brand-accent); border: 2px solid var(--brand-accent); }
+.btn-ghost { background: transparent; color: var(--text-light); padding: 10px 14px; font-size: 14px; }
+.btn-ghost:hover { color: var(--brand-accent); }
+.btn-full { width: 100%; }
+.btn-lg { padding: 18px 24px; font-size: 18px; border-radius: var(--radius); }
+
+.btn:focus-visible, .choice-card:focus-visible, .header-info:focus-visible,
+.rec-btn:focus-visible, .seg button:focus-visible, a:focus-visible, .text-area:focus-visible {
+  outline: 3px solid var(--brand-accent); outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important; animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---- Hero ---- */
+.hero {
+  background: var(--gradient); color: white; border-radius: var(--radius);
+  padding: 24px 20px; text-align: center; box-shadow: var(--shadow-lg);
+}
+.hero .hero-emoji { font-size: 40px; }
+.hero h2 { font-size: 21px; font-weight: 700; margin-top: 8px; }
+.hero p { font-size: 14px; line-height: 1.5; opacity: 0.92; margin-top: 6px; }
+.hero .week-pill {
+  display: inline-block; margin-top: 12px; padding: 4px 12px; border-radius: 999px;
+  background: rgba(255,255,255,0.2); font-size: 13px; font-weight: 600;
+}
+
+.question { font-size: 20px; font-weight: 700; line-height: 1.35; color: var(--text); }
+.question:focus { outline: none; }
+.question-hint { font-size: 14px; color: var(--text-light); line-height: 1.5; margin-top: 6px; }
+
+/* ---- Choice cards ---- */
+.choice-list { display: flex; flex-direction: column; gap: 12px; }
+.choice-card {
+  background: var(--surface); border: 2px solid var(--border); border-radius: var(--radius);
+  padding: 18px 18px; text-align: left; cursor: pointer; transition: all 0.2s;
+  box-shadow: var(--shadow); -webkit-tap-highlight-color: transparent;
+  width: 100%; font-family: inherit; display: flex; gap: 14px; align-items: center; color: var(--text);
+}
+.choice-card:hover, .choice-card:active {
+  border-color: var(--brand); background: var(--surface-hover);
+  transform: translateY(-2px); box-shadow: var(--shadow-lg);
+}
+.choice-card .icon {
+  width: 46px; height: 46px; border-radius: 12px; flex-shrink: 0; font-size: 24px;
+  display: flex; align-items: center; justify-content: center; background: var(--icon-tint);
+}
+.choice-card .label { font-size: 16px; font-weight: 700; }
+.choice-card .desc { font-size: 13px; color: var(--text-light); margin-top: 3px; line-height: 1.4; }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px;
+  background: var(--brand-tint); color: var(--brand-accent); font-size: 13px; font-weight: 600;
+}
+
+/* ---- Segmented control (Write / Record) ---- */
+.seg {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 5px;
+  background: var(--brand-tint); border-radius: var(--radius-sm);
+}
+.seg button {
+  border: none; border-radius: 9px; padding: 11px 10px; font-size: 15px; font-weight: 600;
+  background: transparent; color: var(--brand-accent); cursor: pointer; font-family: inherit;
+  -webkit-tap-highlight-color: transparent; transition: all 0.2s;
+}
+.seg button[aria-selected="true"] { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+
+/* ---- Text ---- */
+.text-area {
+  width: 100%; min-height: 150px; padding: 16px; border: 2px solid var(--border);
+  border-radius: var(--radius-sm); font-size: 16px; font-family: inherit;
+  resize: vertical; transition: border-color 0.2s; line-height: 1.5;
+  background: var(--surface); color: var(--text);
+}
+.text-area:focus { outline: none; border-color: var(--brand); }
+.text-area::placeholder { color: #9CA3AF; }
+.char-count { text-align: right; font-size: 12px; color: var(--text-light); margin-top: 4px; }
+.char-count.limit { color: var(--danger-text); font-weight: 700; }
+
+/* ---- Recording ---- */
+.recorder {
+  display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 22px 0 10px;
+  background: var(--surface); border: 2px solid var(--border); border-radius: var(--radius);
+}
+.rec-btn {
+  width: 80px; height: 80px; border-radius: 50%; border: 4px solid var(--danger);
+  background: var(--surface); cursor: pointer; display: flex; align-items: center;
+  justify-content: center; transition: all 0.2s; -webkit-tap-highlight-color: transparent;
+}
+.rec-btn.recording { background: var(--danger); animation: pulse 1.5s infinite; }
+.rec-btn .rec-dot { width: 28px; height: 28px; border-radius: 50%; background: var(--danger); transition: all 0.2s; }
+.rec-btn.recording .rec-dot { border-radius: 4px; width: 24px; height: 24px; background: white; }
+.rec-timer { font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; }
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  50% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+}
+.audio-preview { width: 100%; margin: 4px 0; }
+.rec-done { width: 100%; padding: 0 16px 8px; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+
+/* ---- Status / notes ---- */
+.note-warn {
+  background: var(--warn-bg); border: 1px solid var(--warn-border); border-radius: var(--radius-sm);
+  padding: 14px 16px; font-size: 14px; line-height: 1.55; color: var(--warn-text);
+}
+.callout { display: flex; gap: 12px; align-items: flex-start; }
+.callout-icon { font-size: 20px; line-height: 1.3; flex-shrink: 0; }
+.callout p + p { margin-top: 8px; }
+.callout strong { color: var(--warn-text); }
+
+/* ---- Confirmation tick boxes ---- */
+.check-list { border: 2px solid var(--border); border-radius: var(--radius); padding: 14px 16px 6px; background: var(--surface); }
+.check-legend { font-size: 14px; font-weight: 700; color: var(--text); padding: 0 6px; }
+.check-item {
+  display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; cursor: pointer;
+  font-size: 14px; line-height: 1.5; color: var(--text);
+}
+.check-item + .check-item { border-top: 1px solid var(--border); }
+.check-item input {
+  width: 24px; height: 24px; flex-shrink: 0; margin-top: 1px; accent-color: var(--brand); cursor: pointer;
+}
+.check-item input:focus-visible { outline: 3px solid var(--brand-accent); outline-offset: 2px; }
+.success-icon {
+  width: 64px; height: 64px; border-radius: 50%; background: var(--success); margin: 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+.success-icon svg { width: 32px; height: 32px; }
+@keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+/* ---- Sending overlay ---- */
+.sending-overlay {
+  position: fixed; inset: 0; background: var(--overlay-bg);
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  z-index: 300; gap: 20px;
+}
+.sending-overlay.active { display: flex; }
+.spinner {
+  width: 48px; height: 48px; border: 4px solid var(--border);
+  border-top-color: var(--brand); border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.sending-text { font-size: 18px; font-weight: 600; color: var(--text); }
+
+/* ---- About ---- */
+.about-card {
+  background: var(--surface); border-radius: var(--radius); padding: 20px;
+  box-shadow: var(--shadow); border: 1px solid var(--border);
+}
+.about-card h3 { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+.about-card p { font-size: 14px; line-height: 1.6; color: var(--text); }
+.about-card p + p { margin-top: 10px; }
+.about-card ul { padding-left: 20px; font-size: 14px; line-height: 1.6; }
+.about-card li + li { margin-top: 6px; }
+
+/* ---- Utilities ---- */
+.gap-16 { display: flex; flex-direction: column; gap: 16px; }
+.row { display: flex; gap: 10px; align-items: center; justify-content: space-between; }
+.mt-8 { margin-top: 8px; }
+.text-center { text-align: center; }
+.text-sm { font-size: 13px; }
+.text-light { color: var(--text-light); }
+.hidden { display: none !important; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.error-box {
+  background: var(--surface); border-radius: var(--radius); padding: 20px;
+  border: 1px solid var(--border); text-align: center;
+}
+.error-box h2 { font-size: 18px; margin-bottom: 8px; }
+.error-box p { font-size: 14px; line-height: 1.6; color: var(--text-light); }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <header class="header">
+    <div class="header-left">
+      <h1>CAISE</h1>
+      <span class="subtitle" id="headerSubtitle">Weekly check-in</span>
+    </div>
+    <div class="header-actions">
+      <button class="header-info" id="themeBtn" onclick="toggleTheme()" aria-label="Switch theme" title="Switch theme">&#127769;</button>
+      <button class="header-info" id="infoBtn" onclick="showScreen('about')" aria-label="About this check-in" title="About this check-in">&#9432;</button>
+    </div>
+  </header>
+
+  <div class="progress" id="progress" aria-hidden="true">
+    <div class="dot" data-step="1"></div>
+    <div class="dot" data-step="2"></div>
+    <div class="dot" data-step="3"></div>
+  </div>
+
+  <main id="main">
+
+  <!-- 1. Start -->
+  <div class="screen active" id="screen-start" data-step="1">
+    <div class="content gap-16">
+      <div class="hero">
+        <div class="hero-emoji" aria-hidden="true">&#128075;</div>
+        <h2>Your weekly check-in</h2>
+        <p>A quick one. It takes about a minute.</p>
+        <span class="week-pill" id="weekPill">Week 1</span>
+      </div>
+      <div>
+        <h2 class="question">Has anything happened with AI or technology at school this week that you'd like to tell us about?</h2>
+        <p class="question-hint">Big or small. Something that helped, something that went wrong, or just something you noticed.</p>
+      </div>
+      <div class="note-warn callout">
+        <span class="callout-icon" aria-hidden="true">&#9888;&#65039;</span>
+        <div>
+          <p><strong>Please don't mention people's names</strong> or anything else that would make someone identifiable.</p>
+          <p data-teacher="Anything that could be a safeguarding concern, or a breach of the school's IT code of conduct, should not be reported here. If you believe anything you were thinking of reporting might fall into this category, please follow the school's usual procedures instead.">Anything that could be a safeguarding concern, or a breach of the school's IT code of conduct, should not be reported here. If you believe anything you were thinking of reporting might fall into this category, please tell the appropriate teacher or member of staff.</p>
+        </div>
+      </div>
+      <div class="choice-list">
+        <button type="button" class="choice-card" onclick="startReport()">
+          <div class="icon" aria-hidden="true">&#128172;</div>
+          <div><div class="label">Yes, I've got something</div><div class="desc">You can write it or record a voice note</div></div>
+        </button>
+        <button type="button" class="choice-card" onclick="nothingToReport()">
+          <div class="icon" aria-hidden="true">&#128077;</div>
+          <div><div class="label">No, nothing this week</div><div class="desc">That's fine, just click here to let us know</div></div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Type -->
+  <div class="screen" id="screen-type" data-step="2">
+    <div class="content gap-16">
+      <div>
+        <h2 class="question" id="typeQuestion">What kind of thing is it?</h2>
+        <p class="question-hint">Pick the closest one. You can add more things afterwards.</p>
+      </div>
+      <div class="choice-list">
+        <button type="button" class="choice-card" onclick="chooseType('useful')">
+          <div class="icon" aria-hidden="true">&#10024;</div>
+          <div><div class="label">Something useful</div><div class="desc" data-teacher="AI or tech helped with your teaching, planning or anything else">AI or tech helped you do, learn or make something</div></div>
+        </button>
+        <button type="button" class="choice-card" onclick="chooseType('difficulty')">
+          <div class="icon" aria-hidden="true">&#9888;&#65039;</div>
+          <div><div class="label">A breakdown or difficulty</div><div class="desc">Something didn't work, went wrong, or was tricky or annoying</div></div>
+        </button>
+        <button type="button" class="choice-card" onclick="chooseType('other')">
+          <div class="icon" aria-hidden="true">&#128161;</div>
+          <div><div class="label">Something else</div><div class="desc">Anything else you noticed, thought or felt</div></div>
+        </button>
+      </div>
+      <button type="button" class="btn btn-ghost" onclick="goBackFromType()">&#8592; Back</button>
+    </div>
+  </div>
+
+  <!-- 3. Details -->
+  <div class="screen" id="screen-details" data-step="3">
+    <div class="content gap-16">
+      <div class="row">
+        <span class="chip" id="typeChip">Something useful</span>
+        <button type="button" class="btn btn-ghost" onclick="showScreen('type')">Change</button>
+      </div>
+      <div>
+        <h2 class="question">Tell us about it</h2>
+        <p class="question-hint" id="detailsHint">What happened? What were you using, and what did you think or feel about it?</p>
+      </div>
+
+      <div class="seg" role="tablist" aria-label="How do you want to answer?">
+        <button type="button" role="tab" id="tabWrite" aria-selected="true" aria-controls="paneWrite" onclick="setMode('write')">&#9997;&#65039; Write it</button>
+        <button type="button" role="tab" id="tabRecord" aria-selected="false" aria-controls="paneRecord" onclick="setMode('record')">&#127908; Voice note</button>
+      </div>
+
+      <div id="paneWrite" role="tabpanel" aria-labelledby="tabWrite">
+        <label class="sr-only" for="detailsText">Your answer</label>
+        <textarea class="text-area" id="detailsText" placeholder="Type here..." maxlength="2000" oninput="onTextInput()"></textarea>
+        <div class="char-count" id="charCount">0 / 2000</div>
+      </div>
+
+      <div id="paneRecord" role="tabpanel" aria-labelledby="tabRecord" class="hidden">
+        <div class="recorder" id="recorder">
+          <div class="rec-timer" id="recTimer">0:00</div>
+          <button type="button" class="rec-btn" id="recBtn" onclick="toggleRecording()" aria-label="Start recording">
+            <div class="rec-dot" aria-hidden="true"></div>
+          </button>
+          <p class="text-sm text-light" id="recHint" aria-live="polite">Tap the circle to start. Tap again to stop.</p>
+          <div class="rec-done hidden" id="recDone">
+            <audio class="audio-preview" id="recPreview" controls></audio>
+            <button type="button" class="btn btn-ghost" onclick="discardRecording()">Delete and record again</button>
+          </div>
+        </div>
+        <p class="text-sm text-light mt-8">You can also add a few words in the <strong>Write it</strong> tab if you like.</p>
+      </div>
+
+      <fieldset class="check-list">
+        <legend class="check-legend">Before you send, please confirm:</legend>
+        <label class="check-item"><input type="checkbox" class="confirm" id="confirmNames" onchange="updateSendButton()"><span>I have not identified anyone in this comment.</span></label>
+        <label class="check-item"><input type="checkbox" class="confirm" id="confirmSafeguarding" onchange="updateSendButton()"><span>This isn't reporting an event that the school might need to act on as a safeguarding concern.</span></label>
+        <label class="check-item"><input type="checkbox" class="confirm" id="confirmConduct" onchange="updateSendButton()"><span>This isn't reporting something that breaches what I have agreed to do under the school's IT code of conduct.</span></label>
+      </fieldset>
+
+      <button type="button" class="btn btn-primary btn-full btn-lg" id="sendBtn" onclick="sendItem()" disabled>Send this &#10148;</button>
+      <button type="button" class="btn btn-ghost" onclick="showScreen('type')">&#8592; Back</button>
+    </div>
+  </div>
+
+  <!-- 4. Anything more? -->
+  <div class="screen" id="screen-more" data-step="3">
+    <div class="content gap-16">
+      <div class="success-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="text-center">
+        <h2 class="question" id="moreTitle">Sent, thank you!</h2>
+        <p class="question-hint" id="moreSub">That's 1 thing this week.</p>
+      </div>
+      <div class="note-warn hidden" id="moreQueuedNote"></div>
+      <h2 class="question" style="font-size:18px">Is there anything else to report this week?</h2>
+      <div class="choice-list">
+        <button type="button" class="choice-card" onclick="showScreen('type')">
+          <div class="icon" aria-hidden="true">&#10133;</div>
+          <div><div class="label">Yes, one more thing</div></div>
+        </button>
+        <button type="button" class="choice-card" onclick="finish()">
+          <div class="icon" aria-hidden="true">&#127881;</div>
+          <div><div class="label">No, that's everything</div></div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Done -->
+  <div class="screen" id="screen-done" data-step="3">
+    <div class="content gap-16">
+      <div class="hero">
+        <div class="hero-emoji" aria-hidden="true">&#127881;</div>
+        <h2 id="doneTitle">Thank you!</h2>
+        <p id="doneText">See you next week.</p>
+      </div>
+      <div class="note-warn hidden" id="doneQueuedNote"></div>
+      <p class="text-sm text-light text-center">You can close this page now. If you remember something later this week, just open your link again.</p>
+      <button type="button" class="btn btn-secondary btn-full" onclick="restart()">Add something else</button>
+    </div>
+  </div>
+
+  <!-- About -->
+  <div class="screen" id="screen-about">
+    <div class="content gap-16">
+      <div class="about-card">
+        <h3>What is this?</h3>
+        <p>During term time, we're asking you to tell us about any moments you noticed in school with AI or technology: something that was useful, something that broke or was difficult, or anything else you noticed.</p>
+        <p>You can write a few words or record a voice note. If nothing happened, just say so. That still helps.</p>
+      </div>
+      <div class="about-card">
+        <h3>What happens to what you send</h3>
+        <ul>
+          <li>It goes straight to the CAISE research team at UCL and is stored in a folder that only the team can see.</li>
+          <li>Your link is just for you. It doesn't contain your name, and nothing you send is visible to anyone else in the study.</li>
+          <li>Voice notes are only listened to by the research team and are written up without your name.</li>
+          <li>If something doesn't send (for example, no wifi), it's kept on this device for up to a week and sent automatically next time you open your link here. After a week it's deleted from the device.</li>
+        </ul>
+      </div>
+      <div class="about-card">
+        <h3>Questions or worries?</h3>
+        <p data-teacher="Contact the CAISE researcher using the details on your information sheet, or raise it at the next session.">Talk to your teacher or the CAISE researcher at your next session, or use the contact details on your information sheet.</p>
+      </div>
+      <button type="button" class="btn btn-secondary btn-full" onclick="showScreen(lastScreen)">Back</button>
+    </div>
+  </div>
+
+  <!-- Error: no token -->
+  <div class="screen" id="screen-error">
+    <div class="content">
+      <div class="error-box">
+        <h2>This link isn't quite right</h2>
+        <p data-teacher="Please open the check-in using the personal link you were given. If it still doesn't work, contact the CAISE researcher.">Please open the check-in using the personal link you were given. If it still doesn't work, tell your teacher or the CAISE researcher.</p>
+      </div>
+    </div>
+  </div>
+
+  </main>
+</div>
+
+<div class="sending-overlay" id="sendingOverlay" role="status">
+  <div class="spinner"></div>
+  <div class="sending-text" id="sendingText">Sending...</div>
+</div>
+
+<script src="../config.js"></script>
+<script>
+// =====================================================================
+// Check-in settings — edit these per round.
+// =====================================================================
+const CHECKIN = {
+  // Monday of week 1. Week numbers are counted from this date.
+  startDate: '2026-11-02',
+  // How many weeks the check-in runs for (used for the "Week N of M" label).
+  weeks: 6,
+  // Longest voice note, in seconds (recording stops automatically).
+  maxRecordingSeconds: 300,
+  // An item that could not be sent is kept on the device and retried for this
+  // many days, then discarded so nothing lingers on a shared machine.
+  queueMaxAgeDays: 7,
+};
+
+// Category labels used in both the UI and the saved records.
+const TYPES = {
+  useful:     { label: 'Something useful',          slug: 'useful',     hint: 'What did AI or technology help you with? What did you use, and what did you think or feel about it?',
+                hintTeacher: 'What did AI or technology help with? In class, in planning, or elsewhere. What did you use, and what did you make of it?' },
+  difficulty: { label: 'A breakdown or difficulty', slug: 'difficulty', hint: 'What went wrong or was difficult? What were you trying to do, and what happened?' },
+  other:      { label: 'Something else',            slug: 'other',      hint: 'Tell us what you noticed, thought or felt.' },
+  nothing:    { label: 'Nothing to report',         slug: 'nothing',    hint: '' },
+};
+
+// ---- State ----
+let currentToken = null;
+// Teacher links carry &r=t. This only swaps a few bits of wording; the folder a
+// submission goes to is decided server-side from the token, never from this flag.
+let isTeacher = false;
+let lastScreen = 'start';
+let currentType = null;
+let currentMode = 'write';
+let recordedBlob = null;
+let recordedMime = '';
+let mediaRecorder = null;
+let audioChunks = [];
+let recInterval = null;
+let recStartTime = 0;
+let recStream = null;
+
+let sessionId = null;        // one check-in sitting (may contain several items)
+let itemsSentThisSession = 0;
+let queuedThisSession = 0;
+
+let DB_NAME = 'caise-checkin';
+let db = null;
+
+// ---- Theme ----
+function syncThemeButton() {
+  const theme = document.documentElement.getAttribute('data-theme') || 'light';
+  const btn = document.getElementById('themeBtn');
+  if (btn) {
+    btn.innerHTML = theme === 'dark' ? '☀️' : '🌙';
+    btn.setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+    btn.setAttribute('title', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+  }
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', theme === 'dark' ? '#0B120F' : '#0E8F6E');
+}
+function toggleTheme() {
+  const next = (document.documentElement.getAttribute('data-theme') === 'dark') ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  try { localStorage.setItem('caise-theme', next); } catch (e) {}
+  syncThemeButton();
+}
+
+// ---- Week calculation ----
+function weekInfo(now) {
+  now = now || new Date();
+  const start = new Date(CHECKIN.startDate + 'T00:00:00');
+  const dayMs = 24 * 60 * 60 * 1000;
+  const diffDays = Math.floor((now - start) / dayMs);
+  const week = Math.floor(diffDays / 7) + 1;
+  const ws = new Date(start.getTime() + (week - 1) * 7 * dayMs);
+  const weekStart = `${ws.getFullYear()}-${pad2(ws.getMonth() + 1)}-${pad2(ws.getDate())}`;
+  return { week, weekStart, beforeStart: diffDays < 0 };
+}
+function weekLabel() {
+  const w = weekInfo();
+  if (w.beforeStart) return 'Starting soon';
+  if (w.week > CHECKIN.weeks) return `Week ${w.week}`;
+  return `Week ${w.week} of ${CHECKIN.weeks}`;
+}
+function pad2(n) { return String(n).padStart(2, '0'); }
+
+// ---- Init ----
+window.addEventListener('DOMContentLoaded', async () => {
+  syncThemeButton();
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('s');
+  isTeacher = params.get('r') === 't';
+  if (isTeacher) {
+    document.querySelectorAll('[data-teacher]').forEach(el => { el.textContent = el.getAttribute('data-teacher'); });
+  }
+
+  if (!token) {
+    showScreen('error');
+    document.getElementById('infoBtn').classList.add('hidden');
+    document.getElementById('progress').classList.add('hidden');
+    return;
+  }
+  currentToken = token;
+  DB_NAME = `caise-checkin-t${token}`;
+  document.getElementById('weekPill').textContent = weekLabel();
+
+  if (navigator.storage && navigator.storage.persist) {
+    try { navigator.storage.persist(); } catch (e) {}
+  }
+  try { await initDB(); } catch (e) { console.warn('IndexedDB unavailable', e); db = null; }
+
+  newSession();
+  retryQueued();
+});
+
+function newSession() {
+  const d = new Date();
+  sessionId = `ck-${d.getFullYear()}${pad2(d.getMonth() + 1)}${pad2(d.getDate())}-${pad2(d.getHours())}${pad2(d.getMinutes())}-${Math.random().toString(36).slice(2, 6)}`;
+  itemsSentThisSession = 0;
+  queuedThisSession = 0;
+}
+
+// ---- Screens ----
+function showScreen(name) {
+  const current = document.querySelector('.screen.active');
+  if (current && current.id !== 'screen-about') lastScreen = current.id.replace('screen-', '');
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(`screen-${name}`);
+  el.classList.add('active');
+  const step = parseInt(el.getAttribute('data-step') || '0', 10);
+  document.querySelectorAll('#progress .dot').forEach(dot => {
+    const n = parseInt(dot.getAttribute('data-step'), 10);
+    dot.classList.toggle('on', n === step);
+    dot.classList.toggle('done', n < step);
+  });
+  document.getElementById('progress').classList.toggle('hidden', step === 0 || name === 'done');
+  window.scrollTo(0, 0);
+  const h = el.querySelector('h2');
+  if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); }
+}
+
+function startReport() {
+  showScreen('type');
+}
+function goBackFromType() {
+  showScreen((itemsSentThisSession + queuedThisSession) > 0 ? 'more' : 'start');
+}
+
+function chooseType(type) {
+  currentType = type;
+  document.getElementById('typeChip').textContent = TYPES[type].label;
+  document.getElementById('detailsHint').textContent = (isTeacher && TYPES[type].hintTeacher) || TYPES[type].hint;
+  resetDetails();
+  showScreen('details');
+}
+
+function resetDetails() {
+  document.getElementById('detailsText').value = '';
+  document.querySelectorAll('.confirm').forEach(cb => { cb.checked = false; });
+  onTextInput();
+  discardRecording();
+  setMode('write');
+}
+
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('tabWrite').setAttribute('aria-selected', mode === 'write');
+  document.getElementById('tabRecord').setAttribute('aria-selected', mode === 'record');
+  document.getElementById('paneWrite').classList.toggle('hidden', mode !== 'write');
+  document.getElementById('paneRecord').classList.toggle('hidden', mode !== 'record');
+  updateSendButton();
+}
+
+function onTextInput() {
+  const ta = document.getElementById('detailsText');
+  const cc = document.getElementById('charCount');
+  cc.textContent = `${ta.value.length} / 2000`;
+  cc.classList.toggle('limit', ta.value.length >= 2000);
+  updateSendButton();
+}
+
+function allConfirmed() {
+  return [...document.querySelectorAll('.confirm')].every(cb => cb.checked);
+}
+
+function updateSendButton() {
+  const hasText = document.getElementById('detailsText').value.trim().length > 0;
+  const recording = mediaRecorder && mediaRecorder.state === 'recording';
+  document.getElementById('sendBtn').disabled = !!recording || !(hasText || recordedBlob) || !allConfirmed();
+}
+
+// ---- Recording ----
+function pickAudioMime() {
+  const candidates = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus', 'audio/ogg'];
+  if (!window.MediaRecorder) return '';
+  for (const c of candidates) { if (MediaRecorder.isTypeSupported(c)) return c; }
+  return '';
+}
+function mimeToExt(mime) {
+  const base = (mime || '').split(';')[0];
+  return { 'audio/webm': 'webm', 'audio/mp4': 'm4a', 'audio/ogg': 'ogg', 'audio/mpeg': 'mp3', 'text/plain': 'txt' }[base] || 'bin';
+}
+
+async function toggleRecording() {
+  const btn = document.getElementById('recBtn');
+  const hint = document.getElementById('recHint');
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop();
+    return;
+  }
+  if (!window.MediaRecorder || !navigator.mediaDevices) {
+    hint.textContent = "This browser can't record audio. Please write your answer instead.";
+    return;
+  }
+  try {
+    recStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mime = pickAudioMime();
+    audioChunks = [];
+    mediaRecorder = mime ? new MediaRecorder(recStream, { mimeType: mime }) : new MediaRecorder(recStream);
+    recordedMime = (mediaRecorder.mimeType || mime || 'audio/webm').split(';')[0];
+    mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunks.push(e.data); };
+    mediaRecorder.onstop = () => {
+      clearInterval(recInterval);
+      if (recStream) { recStream.getTracks().forEach(t => t.stop()); recStream = null; }
+      btn.classList.remove('recording');
+      btn.setAttribute('aria-label', 'Start recording');
+      recordedBlob = new Blob(audioChunks, { type: recordedMime });
+      const audio = document.getElementById('recPreview');
+      audio.src = URL.createObjectURL(recordedBlob);
+      document.getElementById('recDone').classList.remove('hidden');
+      btn.classList.add('hidden');
+      hint.textContent = 'Recorded. Listen back, or send it.';
+      updateSendButton();
+    };
+    mediaRecorder.start();
+    btn.classList.add('recording');
+    btn.setAttribute('aria-label', 'Stop recording');
+    hint.textContent = 'Recording... tap the square to stop.';
+    recStartTime = Date.now();
+    recInterval = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - recStartTime) / 1000);
+      document.getElementById('recTimer').textContent =
+        `${Math.floor(elapsed / 60)}:${(elapsed % 60).toString().padStart(2, '0')}`;
+      if (elapsed >= CHECKIN.maxRecordingSeconds && mediaRecorder.state === 'recording') mediaRecorder.stop();
+    }, 250);
+    updateSendButton();
+  } catch (err) {
+    console.error(err);
+    hint.textContent = "Couldn't use the microphone. Check the browser's permission, or write your answer instead.";
+  }
+}
+
+function discardRecording() {
+  if (mediaRecorder && mediaRecorder.state === 'recording') { try { mediaRecorder.stop(); } catch (e) {} }
+  clearInterval(recInterval);
+  if (recStream) { recStream.getTracks().forEach(t => t.stop()); recStream = null; }
+  recordedBlob = null;
+  const audio = document.getElementById('recPreview');
+  if (audio.src) { try { URL.revokeObjectURL(audio.src); } catch (e) {} audio.removeAttribute('src'); }
+  document.getElementById('recDone').classList.add('hidden');
+  const btn = document.getElementById('recBtn');
+  btn.classList.remove('hidden', 'recording');
+  btn.setAttribute('aria-label', 'Start recording');
+  document.getElementById('recTimer').textContent = '0:00';
+  document.getElementById('recHint').textContent = 'Tap the circle to start. Tap again to stop.';
+  updateSendButton();
+}
+
+// ---- Records ----
+function buildRecordHeader(type, format, itemIndex) {
+  const w = weekInfo();
+  return [
+    'CAISE weekly check-in',
+    w.week < 1 ? `Week: before start (start date ${CHECKIN.startDate})` : `Week: ${w.week} (w/c ${w.weekStart})`,
+    `Submitted: ${new Date().toISOString()}`,
+    `Check-in: ${sessionId}`,
+    `Item: ${itemIndex}`,
+    `Type: ${TYPES[type].label}`,
+    `Format: ${format}`,
+    type === 'nothing' ? 'Confirmed: n/a' : `Confirmed: ${allConfirmed() ? 'no one identified; not a safeguarding concern; not an IT code of conduct breach' : 'NOT confirmed'}`,
+  ].join('\n');
+}
+
+function buildFilename(type, itemIndex, ext) {
+  const w = weekInfo();
+  const now = new Date();
+  const dateStr = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+  const timeStr = `${pad2(now.getHours())}${pad2(now.getMinutes())}`;
+  return `checkin_${dateStr}_${timeStr}_wk${w.week}_i${itemIndex}_${TYPES[type].slug}.${ext}`;
+}
+
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+function textToBase64(text) {
+  return btoa(unescape(encodeURIComponent(text)));
+}
+
+// Build the webhook payload for one item (same contract as the diary app, so
+// the existing Logic App accepts it unchanged). The blob is kept for the retry queue.
+async function buildItem(type, text, audioBlob, audioMime) {
+  const itemIndex = itemsSentThisSession + queuedThisSession + 1;
+  const hasAudio = !!audioBlob;
+  const format = hasAudio ? (text ? 'voice note + text' : 'voice note') : 'text';
+  const header = buildRecordHeader(type, format, itemIndex);
+  const body = type === 'nothing'
+    ? 'Nothing to report this week.'
+    : (text || (hasAudio ? '(see voice note)' : ''));
+  const caption = `${header}\n\n${body}`;
+
+  let payload;
+  if (hasAudio) {
+    const ext = mimeToExt(audioMime);
+    payload = {
+      token: currentToken,
+      caption,
+      filename: buildFilename(type, itemIndex, ext),
+      mediaBase64: await blobToBase64(audioBlob),
+      mimeType: audioMime,
+      mediaType: 'audio',
+      timestamp: new Date().toISOString(),
+      originalFilename: `voice-${Date.now()}.${ext}`,
+    };
+  } else {
+    payload = {
+      token: currentToken,
+      caption,
+      filename: buildFilename(type, itemIndex, 'txt'),
+      mediaBase64: textToBase64(caption),
+      mimeType: 'text/plain',
+      mediaType: 'text',
+      timestamp: new Date().toISOString(),
+      originalFilename: 'checkin.txt',
+    };
+  }
+  return { payload, blob: audioBlob || null };
+}
+
+async function postPayload(payload) {
+  if (!CONFIG.webhookUrl) throw new Error('No webhook configured');
+  const response = await fetch(CONFIG.webhookUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) throw new Error(`Server returned ${response.status}`);
+}
+
+// ---- Send flows ----
+async function sendItem() {
+  const text = document.getElementById('detailsText').value.trim();
+  const blob = recordedBlob;
+  if (!text && !blob) return;
+  document.getElementById('sendBtn').disabled = true;
+  showSending('Sending...');
+  const item = await buildItem(currentType, text, blob, recordedMime);   // header reads the tick boxes, so build before reset
+  const ok = await deliver(item);
+  hideSending();
+  const typeLabel = TYPES[currentType].label;
+  resetDetails();
+  showMore(ok, typeLabel);
+}
+
+async function nothingToReport() {
+  showSending('Sending...');
+  const item = await buildItem('nothing', '', null, '');
+  await deliver(item);
+  hideSending();
+  document.getElementById('doneTitle').textContent = 'Thank you!';
+  document.getElementById('doneText').textContent = "That's noted. See you next week.";
+  updateQueuedNote('doneQueuedNote');
+  showScreen('done');
+}
+
+// Try to send; if it fails, keep it on this device and retry later.
+async function deliver(item) {
+  try {
+    await postPayload(item.payload);
+    itemsSentThisSession++;
+    return true;
+  } catch (err) {
+    console.warn('Send failed, queuing locally:', err);
+    queuedThisSession++;
+    await queuePut(item);
+    return false;
+  }
+}
+
+function showMore(ok, typeLabel) {
+  const total = itemsSentThisSession + queuedThisSession;
+  document.getElementById('moreTitle').textContent = ok ? 'Sent, thank you!' : 'Saved, thank you!';
+  document.getElementById('moreSub').textContent =
+    `${typeLabel} · that's ${total} thing${total === 1 ? '' : 's'} this week.`;
+  updateQueuedNote('moreQueuedNote');
+  showScreen('more');
+}
+
+function updateQueuedNote(id) {
+  const el = document.getElementById(id);
+  if (queuedThisSession > 0) {
+    const one = queuedThisSession === 1;
+    el.textContent = `${one ? 'One thing' : queuedThisSession + ' things'} couldn't be sent right now (maybe no wifi). ${one ? "It's" : "They're"} saved on this device and will be sent automatically next time you open your link here within the next week.`;
+    el.classList.remove('hidden');
+  } else {
+    el.classList.add('hidden');
+  }
+}
+
+function finish() {
+  document.getElementById('doneTitle').textContent = 'Thank you!';
+  document.getElementById('doneText').textContent = 'See you next week.';
+  updateQueuedNote('doneQueuedNote');
+  showScreen('done');
+}
+
+function restart() {
+  showScreen('type');
+}
+
+function showSending(text) {
+  document.getElementById('sendingText').textContent = text;
+  document.getElementById('sendingOverlay').classList.add('active');
+}
+function hideSending() {
+  document.getElementById('sendingOverlay').classList.remove('active');
+}
+
+// ---- Local retry queue (IndexedDB) ----
+function initDB() {
+  return new Promise((resolve, reject) => {
+    if (!window.indexedDB) return reject(new Error('no indexedDB'));
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = (e) => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('queue')) d.createObjectStore('queue', { keyPath: 'id' });
+    };
+    req.onsuccess = (e) => { db = e.target.result; resolve(); };
+    req.onerror = (e) => reject(e.target.error);
+  });
+}
+function queuePut(item) {
+  if (!db) return Promise.resolve();
+  const { mediaBase64, ...meta } = item.payload;
+  const rec = { id: `q-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, meta, blob: item.blob, savedAt: Date.now() };
+  return new Promise((resolve) => {
+    const tx = db.transaction('queue', 'readwrite');
+    tx.objectStore('queue').put(rec);
+    tx.oncomplete = resolve;
+    tx.onerror = resolve;
+  });
+}
+function queueAll() {
+  if (!db) return Promise.resolve([]);
+  return new Promise((resolve) => {
+    const req = db.transaction('queue', 'readonly').objectStore('queue').getAll();
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = () => resolve([]);
+  });
+}
+function queueDelete(id) {
+  if (!db) return Promise.resolve();
+  return new Promise((resolve) => {
+    const tx = db.transaction('queue', 'readwrite');
+    tx.objectStore('queue').delete(id);
+    tx.oncomplete = resolve;
+    tx.onerror = resolve;
+  });
+}
+async function retryQueued() {
+  const items = await queueAll();
+  const maxAge = CHECKIN.queueMaxAgeDays * 24 * 60 * 60 * 1000;
+  for (const rec of items) {
+    if (!rec.savedAt || Date.now() - rec.savedAt > maxAge) {
+      await queueDelete(rec.id);   // too old: discard rather than keep on a shared device
+      continue;
+    }
+    try {
+      const payload = { ...rec.meta };
+      payload.mediaBase64 = rec.blob ? await blobToBase64(rec.blob) : textToBase64(rec.meta.caption);
+      await postPayload(payload);
+      await queueDelete(rec.id);
+    } catch (e) {
+      // Still can't send; leave it for next time.
+    }
+  }
+}
+</script>
+</body>
+</html>
