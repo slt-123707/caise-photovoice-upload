@@ -180,6 +180,7 @@ body {
   display: inline-block; margin-top: 12px; padding: 4px 12px; border-radius: 999px;
   background: rgba(255,255,255,0.2); font-size: 13px; font-weight: 600;
 }
+.hero .hero-meta { font-size: 13px; opacity: 0.85; margin-top: 10px; }
 
 .question { font-size: 20px; font-weight: 700; line-height: 1.35; color: var(--text); }
 .question:focus { outline: none; }
@@ -355,7 +356,8 @@ body {
         <div class="hero-emoji" aria-hidden="true">&#128075;</div>
         <h2>Your weekly check-in</h2>
         <p>A quick one. It takes about a minute.</p>
-        <span class="week-pill" id="weekPill">Week 1</span>
+        <span class="week-pill" id="openPill">Open until 11 December</span>
+        <p class="hero-meta" id="lastEntry">No entries yet from this device</p>
       </div>
       <div>
         <h2 class="question">Has anything happened with AI or technology at school this week that you'd like to tell us about?</h2>
@@ -520,6 +522,17 @@ body {
     </div>
   </div>
 
+  <!-- Closed -->
+  <div class="screen" id="screen-closed">
+    <div class="content gap-16">
+      <div class="hero">
+        <div class="hero-emoji" aria-hidden="true">&#128075;</div>
+        <h2>The check-in has now closed</h2>
+        <p>It closed on <span id="closedDate"></span>. Thank you for taking part!</p>
+      </div>
+    </div>
+  </div>
+
   <!-- Error: no token -->
   <div class="screen" id="screen-error">
     <div class="content">
@@ -544,10 +557,9 @@ body {
 // Check-in settings — edit these per round.
 // =====================================================================
 const CHECKIN = {
-  // Monday of week 1. Week numbers are counted from this date.
-  startDate: '2026-10-26',   // TESTING: set to the real first Monday before the round starts
-  // How many weeks the check-in runs for (used for the "Week N of M" label).
-  weeks: 6,
+  // Last day entries are accepted (inclusive). Shown on the front page; after
+  // this date the page shows a "closed" notice and sends nothing.
+  closeDate: '2026-12-11',
   // Longest voice note, in seconds (recording stops automatically).
   maxRecordingSeconds: 300,
   // An item that could not be sent is kept on the device and retried for this
@@ -606,24 +618,36 @@ function toggleTheme() {
   syncThemeButton();
 }
 
-// ---- Week calculation ----
-function weekInfo(now) {
-  now = now || new Date();
-  const start = new Date(CHECKIN.startDate + 'T00:00:00');
-  const dayMs = 24 * 60 * 60 * 1000;
-  const diffDays = Math.floor((now - start) / dayMs);
-  const week = Math.floor(diffDays / 7) + 1;
-  const ws = new Date(start.getTime() + (week - 1) * 7 * dayMs);
-  const weekStart = `${ws.getFullYear()}-${pad2(ws.getMonth() + 1)}-${pad2(ws.getDate())}`;
-  return { week, weekStart, beforeStart: diffDays < 0 };
-}
-function weekLabel() {
-  const w = weekInfo();
-  if (w.beforeStart) return 'Starting soon';
-  if (w.week > CHECKIN.weeks) return `Week ${w.week}`;
-  return `Week ${w.week} of ${CHECKIN.weeks}`;
-}
+// ---- Dates ----
 function pad2(n) { return String(n).padStart(2, '0'); }
+function closeDateEnd() {
+  return new Date(CHECKIN.closeDate + 'T23:59:59');
+}
+function isClosed() {
+  return Date.now() > closeDateEnd().getTime();
+}
+function closeLabel() {
+  return closeDateEnd().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+}
+// "Last entry" is remembered per device and per link (localStorage), so it
+// reflects what this person has sent from this device.
+function lastEntryKey() { return `caise-checkin-last-t${currentToken}`; }
+function noteEntryMade() {
+  try { localStorage.setItem(lastEntryKey(), String(Date.now())); } catch (e) {}
+}
+function lastEntryLabel() {
+  let t = null;
+  try { t = parseInt(localStorage.getItem(lastEntryKey()), 10) || null; } catch (e) {}
+  if (!t) return 'No entries yet from this device';
+  const days = Math.floor((Date.now() - t) / (24 * 60 * 60 * 1000));
+  if (days === 0) return 'Last entry: today';
+  if (days === 1) return 'Last entry: yesterday';
+  return `Last entry: ${days} days ago`;
+}
+function refreshStartScreen() {
+  document.getElementById('openPill').textContent = `Open until ${closeLabel()}`;
+  document.getElementById('lastEntry').textContent = lastEntryLabel();
+}
 
 // ---- Init ----
 window.addEventListener('DOMContentLoaded', async () => {
@@ -643,7 +667,14 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
   currentToken = token;
   DB_NAME = `caise-checkin-t${token}`;
-  document.getElementById('weekPill').textContent = weekLabel();
+
+  if (isClosed()) {
+    document.getElementById('closedDate').textContent = closeLabel();
+    showScreen('closed');
+    document.getElementById('progress').classList.add('hidden');
+    return;
+  }
+  refreshStartScreen();
 
   if (navigator.storage && navigator.storage.persist) {
     try { navigator.storage.persist(); } catch (e) {}
@@ -663,6 +694,7 @@ function newSession() {
 
 // ---- Screens ----
 function showScreen(name) {
+  if (name === 'start' && currentToken) refreshStartScreen();
   const current = document.querySelector('.screen.active');
   if (current && current.id !== 'screen-about') lastScreen = current.id.replace('screen-', '');
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -809,10 +841,8 @@ function discardRecording() {
 
 // ---- Records ----
 function buildRecordHeader(type, format, itemIndex) {
-  const w = weekInfo();
   return [
     'CAISE weekly check-in',
-    w.week < 1 ? `Week: before start (start date ${CHECKIN.startDate})` : `Week: ${w.week} (w/c ${w.weekStart})`,
     `Submitted: ${new Date().toISOString()}`,
     `Check-in: ${sessionId}`,
     `Item: ${itemIndex}`,
@@ -823,11 +853,10 @@ function buildRecordHeader(type, format, itemIndex) {
 }
 
 function buildFilename(type, itemIndex, ext) {
-  const w = weekInfo();
   const now = new Date();
   const dateStr = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
   const timeStr = `${pad2(now.getHours())}${pad2(now.getMinutes())}`;
-  return `checkin_${dateStr}_${timeStr}_wk${w.week}_i${itemIndex}_${TYPES[type].slug}.${ext}`;
+  return `checkin_${dateStr}_${timeStr}_i${itemIndex}_${TYPES[type].slug}.${ext}`;
 }
 
 function blobToBase64(blob) {
@@ -920,6 +949,7 @@ async function nothingToReport() {
 
 // Try to send; if it fails, keep it on this device and retry later.
 async function deliver(item) {
+  noteEntryMade();
   try {
     await postPayload(item.payload);
     itemsSentThisSession++;

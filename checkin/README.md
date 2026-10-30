@@ -38,8 +38,7 @@ At the top of the script block in `index.html`:
 
 | Setting | What it does |
 | --- | --- |
-| `startDate` | Monday of week 1. Week numbers in the UI and in every record count from this. |
-| `weeks` | Length of the round, for the "Week N of M" pill. |
+| `closeDate` | Last day entries are accepted. Shown as "Open until ..." on the front page; after it the page shows a closed notice and sends nothing. |
 | `maxRecordingSeconds` | Voice notes stop automatically at this length (default 5 minutes). |
 | `queueMaxAgeDays` | How long an unsent item is kept on the device before being discarded (default 7). |
 
@@ -47,11 +46,10 @@ Category labels and the per-category prompt text are in the `TYPES` table just b
 
 ## What a record looks like
 
-Text item: one file `checkin_2026-11-18_1412_wk3_i1_useful.txt` containing
+Text item: one file `checkin_2026-11-18_1412_i1_useful.txt` containing
 
 ```
 CAISE weekly check-in
-Week: 3 (w/c 2026-11-16)
 Submitted: 2026-11-18T14:12:33.000Z
 Check-in: ck-20261118-1412-a7f3
 Item: 1
@@ -76,7 +74,7 @@ rather than retried, so nothing lingers on a shared machine.
 
 ## Before each round
 
-1. Set `startDate` (and `weeks` if different), commit, push. Pages redeploys in about a minute.
+1. Set `closeDate`, commit, push. Pages redeploys in about a minute.
 2. Make sure the `caise-upload` Logic App is **enabled** in Azure and the
    participants' tokens are in the Key Vault `student-map` secret.
 3. Open `/checkin/?s=<TEST TOKEN>` on a Surface, send one text item and one
